@@ -1,0 +1,64 @@
+name: Project Automation
+
+on:
+    pull_request:
+        types: [opened, reopened, closed]
+    issues:
+        types: [opened, reopened, closed]
+
+permissions:
+    contents: read
+
+jobs:
+    track:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Get project ID
+              id: project
+              env:
+                  GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+              run: |
+                  PROJECT_ID=$(gh api graphql \
+                    --field query='query($org:String!,$n:Int!){organization(login:$org){projectV2(number:$n){id}}}' \
+                    --field org=usepresencia \
+                    --field n=5 \
+                    --jq '.data.organization.projectV2.id')
+                  echo "id=$PROJECT_ID" >> "$GITHUB_OUTPUT"
+
+            - name: Add item to project
+              id: add
+              uses: actions/add-to-project@v1.0.2
+              with:
+                  project-url: https://github.com/orgs/usepresencia/projects/5
+                  github-token: ${{ secrets.PROJECT_TOKEN }}
+
+            - name: Set card status
+              if: ${{ steps.project.outputs.id != '' && steps.add.outputs.itemId != '' }}
+              env:
+                  GH_TOKEN: ${{ secrets.PROJECT_TOKEN }}
+                  ITEM_ID: ${{ steps.add.outputs.itemId }}
+                  PROJECT_ID: ${{ steps.project.outputs.id }}
+              run: |
+                  if [[ "${{ github.event_name }}" == "pull_request" ]]; then
+                    if [[ "${{ github.event.action }}" == "closed" && "${{ github.event.pull_request.merged }}" == "true" ]]; then
+                      OPTION_ID="6d371139"
+                    elif [[ "${{ github.event.action }}" == "closed" ]]; then
+                      OPTION_ID="100fbced"
+                    else
+                      OPTION_ID="1df55b11"
+                    fi
+                  else
+                    OPTION_ID="100fbced"
+                  fi
+
+                  STATUS_FIELD_ID=$(gh api graphql \
+                    --field query='query($id:ID!){node(id:$id){...on ProjectV2{fields(first:20){nodes{...on ProjectV2SingleSelectField{id name}}}}}}' \
+                    --field id="$PROJECT_ID" \
+                    --jq '.data.node.fields.nodes[]|select(.name=="Status")|.id')
+
+                  gh api graphql \
+                    --field query='mutation($p:ID!,$i:ID!,$f:ID!,$o:String!){updateProjectV2ItemFieldValue(input:{projectId:$p,itemId:$i,fieldId:$f,value:{singleSelectOptionId:$o}}){projectV2Item{id}}}' \
+                    --field p="$PROJECT_ID" \
+                    --field i="$ITEM_ID" \
+                    --field f="$STATUS_FIELD_ID" \
+                    --field o="$OPTION_ID"
