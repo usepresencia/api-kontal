@@ -1,0 +1,10 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+}
+
+// Modelos nascem junto com cada issue de domínio (shared/billing/titles/ledger),
+// via TDD — ver docs/superpowers/specs/2026-09-19-kontal-migration-design.md.
