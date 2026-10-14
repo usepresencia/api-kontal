@@ -42,3 +42,46 @@ describe('parseEnv', () => {
         expect(() => parseEnv({ ...valid, NODE_ENV: 'staging' })).toThrow(/NODE_ENV/);
     });
 });
+
+describe('parseEnv: Cloudinary', () => {
+    const cloudinary = {
+        CLOUDINARY_CLOUD_NAME: 'demo-cloud',
+        CLOUDINARY_API_KEY: '123456789012345',
+        CLOUDINARY_API_SECRET: 'segredo',
+    };
+
+    it('aceita nenhuma das três variáveis', () => {
+        const env = parseEnv(valid);
+        expect(env.CLOUDINARY_CLOUD_NAME).toBeUndefined();
+        expect(env.CLOUDINARY_API_KEY).toBeUndefined();
+        expect(env.CLOUDINARY_API_SECRET).toBeUndefined();
+    });
+
+    it('aceita as três variáveis', () => {
+        const env = parseEnv({ ...valid, ...cloudinary });
+        expect(env.CLOUDINARY_CLOUD_NAME).toBe('demo-cloud');
+        expect(env.CLOUDINARY_API_SECRET).toBe('segredo');
+    });
+
+    it.each([
+        ['só o cloud name', ['CLOUDINARY_CLOUD_NAME']],
+        ['só a api key', ['CLOUDINARY_API_KEY']],
+        ['cloud name e api key', ['CLOUDINARY_CLOUD_NAME', 'CLOUDINARY_API_KEY']],
+        ['api key e secret', ['CLOUDINARY_API_KEY', 'CLOUDINARY_API_SECRET']],
+    ])('falha quando há %s sem as demais', (_label, keys) => {
+        const partial = Object.fromEntries(
+            keys.map(key => [key, cloudinary[key as keyof typeof cloudinary]]),
+        );
+        expect(() => parseEnv({ ...valid, ...partial })).toThrow(/CLOUDINARY/);
+    });
+
+    it('trata string vazia como variável ausente', () => {
+        const env = parseEnv({
+            ...valid,
+            CLOUDINARY_CLOUD_NAME: '',
+            CLOUDINARY_API_KEY: '',
+            CLOUDINARY_API_SECRET: '',
+        });
+        expect(env.CLOUDINARY_CLOUD_NAME).toBeUndefined();
+    });
+});
