@@ -1,10 +1,11 @@
 import { bearer, useTestApp } from '@test/e2e/support/app.js';
+import { createCompanyFixture } from '@test/e2e/support/fixtures.js';
 
 const { api, db } = useTestApp();
 
 describe('isolamento por empresa e papéis', () => {
     beforeEach(async () => {
-        await db().company.create({ data: { id: 'c1', name: 'Padaria' } });
+        await createCompanyFixture(db(), { id: 'c1', name: 'Padaria' });
     });
 
     it('403 TENANT_REQUIRED sem X-Tenant-Id', async () => {

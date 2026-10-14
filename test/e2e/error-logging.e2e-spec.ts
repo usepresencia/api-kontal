@@ -1,12 +1,13 @@
 import { firebaseFirestore } from '@/infrastructure/auth/firebase.config.js';
 import { bearer, useTestApp } from '@test/e2e/support/app.js';
+import { createCompanyFixture } from '@test/e2e/support/fixtures.js';
 import { waitFor } from '@test/e2e/support/wait-for.js';
 
 const { api, db } = useTestApp();
 
 describe('log de erros 5xx no Firestore Emulator', () => {
     beforeEach(async () => {
-        await db().company.create({ data: { id: 'c1', name: 'Padaria' } });
+        await createCompanyFixture(db(), { id: 'c1', name: 'Padaria' });
     });
 
     it('responde 500 genérico e grava a entrada com empresa, usuário e contexto', async () => {

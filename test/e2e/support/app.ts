@@ -13,10 +13,9 @@ import { QueryCounter } from '@test/e2e/support/query-counter.js';
 import { ProbeController } from '@test/e2e/support/probe.controller.js';
 
 async function resetDatabase(prisma: PrismaService): Promise<void> {
-    await prisma.membership.deleteMany();
-    await prisma.platformAccess.deleteMany();
-    await prisma.user.deleteMany();
-    await prisma.company.deleteMany();
+    await prisma.$executeRawUnsafe(
+        'TRUNCATE TABLE "BillingAccount", "BillingPlan", "CompanyAddress", "Membership", "PlatformAccess", "User", "Company" RESTART IDENTITY CASCADE',
+    );
 }
 
 /** Registra os hooks do e2e (app, emulators e banco limpos) e devolve `api()` e `db()`. */
