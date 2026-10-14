@@ -21,6 +21,11 @@ enum PlatformRole {
     COPYWRITE
 }
 
+enum AccountType {
+    ANALYTIC
+    SYNTHETIC
+}
+
 model User {
     id             String          @id @default(uuid())
     firebaseUid    String          @unique
@@ -35,12 +40,37 @@ model User {
 }
 
 model Company {
-    id          String       @id @default(uuid())
-    name        String
-    isActive    Boolean      @default(true)
-    createdAt   DateTime     @default(now())
-    updatedAt   DateTime     @updatedAt
-    memberships Membership[]
+    id           String          @id @default(uuid())
+    name         String
+    socialReason String
+    cnpj         String          @unique
+    openingDate  DateTime        @db.Date
+    cnae         String
+    taxRegime    String
+    email        String
+    phone        String
+    logoUrl      String?
+    isActive     Boolean         @default(true)
+    createdAt    DateTime        @default(now())
+    updatedAt    DateTime        @updatedAt
+    memberships  Membership[]
+    address      CompanyAddress?
+    billingPlans BillingPlan[]
+
+    @@index([isActive, name])
+}
+
+model CompanyAddress {
+    id           String  @id @default(uuid())
+    companyId    String  @unique
+    zipCode      String
+    street       String
+    number       String
+    complement   String?
+    neighborhood String
+    city         String
+    state        String
+    company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 }
 
 model Membership {
@@ -62,4 +92,39 @@ model PlatformAccess {
     role      PlatformRole
     createdAt DateTime     @default(now())
     user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BillingPlan {
+    id          String           @id @default(uuid())
+    companyId   String
+    name        String
+    description String           @default("")
+    createdAt   DateTime         @default(now())
+    updatedAt   DateTime         @updatedAt
+    company     Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+    accounts    BillingAccount[]
+
+    @@index([companyId, name])
+}
+
+model BillingAccount {
+    id            String           @id @default(uuid())
+    billingPlanId String
+    parentId      String?
+    name          String
+    accountType   AccountType
+    isActive      Boolean          @default(true)
+    code          String
+    sortKey       String
+    level         Int
+    createdAt     DateTime         @default(now())
+    updatedAt     DateTime         @updatedAt
+    billingPlan   BillingPlan      @relation(fields: [billingPlanId], references: [id], onDelete: Restrict)
+    parent        BillingAccount?  @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+    children      BillingAccount[] @relation("AccountTree")
+
+    @@unique([billingPlanId, code])
+    @@index([billingPlanId, parentId])
+    @@index([billingPlanId, sortKey])
+    @@index([accountType])
 }

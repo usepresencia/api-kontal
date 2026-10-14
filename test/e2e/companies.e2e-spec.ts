@@ -1,16 +1,13 @@
 import { bearer, useTestApp } from '@test/e2e/support/app.js';
+import { createCompanyFixture } from '@test/e2e/support/fixtures.js';
 
 const { api, db } = useTestApp();
 
 describe('GET /auth/tenants', () => {
     beforeEach(async () => {
-        await db().company.createMany({
-            data: [
-                { id: 'c-b', name: 'Banca' },
-                { id: 'c-a', name: 'Açougue' },
-                { id: 'c-x', name: 'Fechada', isActive: false },
-            ],
-        });
+        await createCompanyFixture(db(), { id: 'c-b', name: 'Banca' });
+        await createCompanyFixture(db(), { id: 'c-a', name: 'Açougue' });
+        await createCompanyFixture(db(), { id: 'c-x', name: 'Fechada', isActive: false });
     });
 
     it('INTERNAL_ADMIN lista as empresas ativas como OWNER', async () => {
