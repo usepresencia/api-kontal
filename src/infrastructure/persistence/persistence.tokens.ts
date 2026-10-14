@@ -3,3 +3,5 @@ export const COMPANY_REPOSITORY = Symbol('ICompanyRepository');
 export const MEMBERSHIP_REPOSITORY = Symbol('IMembershipRepository');
 export const PLATFORM_ACCESS_REPOSITORY = Symbol('IPlatformAccessRepository');
 export const COMPANY_PROFILE_REPOSITORY = Symbol('ICompanyProfileRepository');
+export const BILLING_PLAN_REPOSITORY = Symbol('IBillingPlanRepository');
+export const BILLING_ACCOUNT_REPOSITORY = Symbol('IBillingAccountRepository');
