@@ -2,15 +2,24 @@
 
 API do **Kontal** — gestão financeira e contábil para micro e pequenas
 empresas do Simples Nacional e escritórios de contabilidade
-terceirizados. NestJS + Prisma + PostgreSQL.
+terceirizados. NestJS 12 + Prisma 7 + PostgreSQL, no padrão de projeto
+da `api-presencia`.
 
-Este repositório substitui o backend Django do monorepo original
-(`grupo04`), portando também o módulo de autorização multiempresa
-(`Membership`/`TenantIsolationGuard`) do
-[`api-agendaflow`](https://github.com/usepresencia/api-agendaflow).
+Substitui o backend Django (`accountflow-api`, no monorepo `grupo04`).
 
-Contexto completo da migração:
-[spec de design](https://github.com/6-Semestre-Grupo-4/grupo04/blob/main/docs/superpowers/specs/2026-09-19-kontal-migration-design.md).
+## Arquitetura
+
+Camadas na raiz de `src/`: `domain` (entidades, papéis, erros,
+interfaces de repositório; TypeScript puro), `application` (services),
+`infrastructure` (Prisma, Firebase, guards, logging), `presentation`
+(controllers, módulos, filtro global) e `config` (env com Zod).
+
+- **Auth:** Firebase ID token no `Authorization: Bearer` (mesmo projeto
+  da Presencia). Acesso restrito a `INTERNAL_ADMIN` e `INTERNAL_BILLING`.
+- **Empresa:** header `X-Tenant-Id` (= `companyId`). `INTERNAL_ADMIN` →
+  `OWNER`; `INTERNAL_BILLING` → `SUPPORT` (somente leitura).
+- **Imports:** alias `@/` mantendo o sufixo `.js`
+  (`import { x } from '@/utils/x.js'`).
 
 ## Como contribuir
 
@@ -27,7 +36,10 @@ Commits fora do padrão não passam no CI (`commitlint`).
 ## Rodando localmente
 
 ```bash
+cp .env.example .env        # preencher FIREBASE_* (service account)
+docker compose up -d db
 npm install
+npm run prisma:deploy
 npm run prisma:generate
 npm run start:dev
 ```
@@ -42,4 +54,11 @@ dobrada.
 npm run test
 npm run test:watch
 npm run test:cov
+```
+
+Testes e2e (Postgres real do `docker compose` e Firebase Auth/Firestore
+Emulators, que o `npm run test:e2e` sobe e desliga sozinho; requer Java 21+):
+
+```bash
+docker compose up -d db && npm run prisma:deploy && npm run test:e2e
 ```

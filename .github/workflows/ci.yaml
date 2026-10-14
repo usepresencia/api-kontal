@@ -10,6 +10,22 @@ jobs:
     build:
         runs-on: ubuntu-latest
         name: Validate, Lint, Build (NestJS)
+        env:
+            DATABASE_URL: postgresql://kontal:kontal@localhost:5432/kontal?schema=public
+        services:
+            postgres:
+                image: postgres:16-alpine
+                env:
+                    POSTGRES_USER: kontal
+                    POSTGRES_PASSWORD: kontal
+                    POSTGRES_DB: kontal
+                ports:
+                    - 5432:5432
+                options: >-
+                    --health-cmd "pg_isready -U kontal -d kontal"
+                    --health-interval 5s
+                    --health-timeout 3s
+                    --health-retries 10
 
         steps:
             - name: Checkout repository
@@ -37,8 +53,6 @@ jobs:
               run: npx commitlint --from "${{ github.event.pull_request.base.sha }}" --to pr --verbose
 
             - name: Generate Prisma Client
-              env:
-                  DATABASE_URL: ${{ secrets.DATABASE_URL }}
               run: npm run prisma:generate
 
             - name: Lint code
@@ -47,11 +61,29 @@ jobs:
             - name: Check code formatting
               run: npx prettier '**/*.{css,scss,yaml,yml,ts,js,jsx,tsx,json,md}' --check
 
-            - name: Run tests
-              run: npm run test
+            - name: Run tests with coverage
+              run: npm run test:cov
 
             - name: Build project
               run: npm run build
+
+            - name: Apply migrations
+              run: npm run prisma:deploy
+
+            - name: Setup Java (Firebase Emulators)
+              uses: actions/setup-java@v4
+              with:
+                  distribution: temurin
+                  java-version: 21
+
+            - name: Cache Firebase Emulators
+              uses: actions/cache@v4
+              with:
+                  path: ~/.cache/firebase/emulators
+                  key: firebase-emulators-${{ hashFiles('package-lock.json') }}
+
+            - name: Run e2e tests
+              run: npm run test:e2e
 
     release:
         runs-on: ubuntu-latest
