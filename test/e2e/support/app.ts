@@ -9,6 +9,7 @@ import {
     clearEmulators,
     emulatorToken,
 } from '@test/e2e/support/firebase-emulator.js';
+import { QueryCounter } from '@test/e2e/support/query-counter.js';
 import { ProbeController } from '@test/e2e/support/probe.controller.js';
 
 async function resetDatabase(prisma: PrismaService): Promise<void> {
@@ -22,6 +23,7 @@ async function resetDatabase(prisma: PrismaService): Promise<void> {
 export function useTestApp() {
     let app: NestExpressApplication;
     let prisma: PrismaService;
+    let counter: QueryCounter;
 
     beforeAll(async () => {
         const moduleRef = await Test.createTestingModule({
@@ -32,6 +34,7 @@ export function useTestApp() {
         configureApp(app);
         await app.init();
         prisma = app.get(PrismaService);
+        counter = new QueryCounter(prisma);
     });
 
     afterAll(async () => {
@@ -46,6 +49,7 @@ export function useTestApp() {
     return {
         api: () => request(app.getHttpServer()),
         db: () => prisma,
+        queries: () => counter,
     };
 }
 
