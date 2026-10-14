@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { PrismaService } from './infrastructure/persistence/prisma.service.js';
+import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 
 /**
  * Módulo transversal: autenticação (Firebase) e tenant/membership.
