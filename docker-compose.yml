@@ -1,0 +1,19 @@
+services:
+    db:
+        image: postgres:16-alpine
+        environment:
+            POSTGRES_USER: kontal
+            POSTGRES_PASSWORD: kontal
+            POSTGRES_DB: kontal
+        ports:
+            - '5432:5432'
+        volumes:
+            - kontal-db:/var/lib/postgresql/data
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U kontal -d kontal']
+            interval: 5s
+            timeout: 3s
+            retries: 10
+
+volumes:
+    kontal-db:

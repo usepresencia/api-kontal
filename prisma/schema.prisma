@@ -6,5 +6,59 @@ datasource db {
     provider = "postgresql"
 }
 
-// Modelos nascem junto com cada issue de domínio (shared/billing/titles/ledger),
-// via TDD — ver docs/superpowers/specs/2026-09-19-kontal-migration-design.md.
+enum MembershipRole {
+    OWNER
+    OPERATIONAL
+    ACCOUNTANT
+    SUPPORT
+}
+
+enum PlatformRole {
+    INTERNAL_ADMIN
+    INTERNAL_SUPPORT
+    INTERNAL_BILLING
+    COPYWRITE
+}
+
+model User {
+    id             String          @id @default(uuid())
+    firebaseUid    String          @unique
+    email          String          @unique
+    name           String
+    avatarUrl      String?
+    phone          String?
+    createdAt      DateTime        @default(now())
+    updatedAt      DateTime        @updatedAt
+    memberships    Membership[]
+    platformAccess PlatformAccess?
+}
+
+model Company {
+    id          String       @id @default(uuid())
+    name        String
+    isActive    Boolean      @default(true)
+    createdAt   DateTime     @default(now())
+    updatedAt   DateTime     @updatedAt
+    memberships Membership[]
+}
+
+model Membership {
+    id        String         @id @default(uuid())
+    companyId String
+    userId    String
+    role      MembershipRole
+    isActive  Boolean        @default(true)
+    joinedAt  DateTime       @default(now())
+    company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+    user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([companyId, userId])
+    @@index([userId])
+}
+
+model PlatformAccess {
+    userId    String       @id
+    role      PlatformRole
+    createdAt DateTime     @default(now())
+    user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}

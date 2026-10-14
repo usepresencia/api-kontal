@@ -1,20 +1,17 @@
 import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '@prisma/client';
 import { Pool } from 'pg';
+import type { Env } from '@/config/env.schema.js';
 
 @Injectable()
 export class PrismaService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
-    constructor(private readonly config: ConfigService) {
-        const url = config.get<string>('DATABASE_URL');
-        if (!url) throw new Error('DATABASE_URL is required');
-
+    constructor(config: ConfigService<Env, true>) {
         const pool = new Pool({
-            connectionString: url,
-            max: config.get<number>('PG_POOL_MAX') ?? 10,
+            connectionString: config.get('DATABASE_URL', { infer: true }),
+            max: config.get('PG_POOL_MAX', { infer: true }),
         });
-
         super({ adapter: new PrismaPg(pool) });
     }
 
