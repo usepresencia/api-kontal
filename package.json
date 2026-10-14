@@ -23,7 +23,8 @@
         "test:watch": "vitest",
         "test:cov": "vitest run --coverage",
         "test:debug": "vitest --inspect-brk --no-file-parallelism",
-        "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+        "emulators:start": "firebase emulators:start --only auth,firestore --project demo-kontal",
+        "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-kontal \"vitest run --config ./vitest.config.e2e.ts\"",
         "release": "standard-version",
         "commit": "cz",
         "prepare": "husky"
