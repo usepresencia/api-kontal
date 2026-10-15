@@ -122,3 +122,41 @@ describe('JournalTxRepository.writeAll', () => {
         await expect(repo.writeAll([entry('j1', 'e1')])).rejects.toBe(boom);
     });
 });
+
+describe('JournalTxRepository.lock', () => {
+    it('trava o lançamento da empresa e o devolve; null se não é da empresa', async () => {
+        const dec = (text: string) => ({ toFixed: () => text });
+        const row = {
+            id: 'j1',
+            companyId: 'c1',
+            date: new Date('2026-10-01T00:00:00.000Z'),
+            description: 'd',
+            referenceType: 'MANUAL',
+            referenceId: 'j1',
+            totalDebits: dec('1.00'),
+            totalCredits: dec('1.00'),
+            createdAt: new Date('2026-10-01T12:00:00.000Z'),
+            lines: [
+                { accountId: 'a', debit: dec('1.00'), credit: dec('0.00'), memo: '' },
+                { accountId: 'b', debit: dec('0.00'), credit: dec('1.00'), memo: '' },
+            ],
+        };
+        const client = {
+            $queryRaw: vi
+                .fn()
+                .mockResolvedValueOnce([{ id: 'j1' }])
+                .mockResolvedValueOnce([]),
+            journalEntry: { findUniqueOrThrow: vi.fn().mockResolvedValue(row) },
+        };
+        const repo = new JournalTxRepository(client as never);
+        expect((await repo.lock('c1', 'j1'))?.id).toBe('j1');
+        const [strings, ...values] = client.$queryRaw.mock.calls[0];
+        expect((strings as string[]).join('?')).toContain('FOR UPDATE');
+        expect(values).toEqual(['j1', 'c1']);
+        expect(client.journalEntry.findUniqueOrThrow).toHaveBeenCalledWith({
+            where: { id: 'j1' },
+            include: { lines: true },
+        });
+        await expect(repo.lock('c1', 'x')).resolves.toBeNull();
+    });
+});

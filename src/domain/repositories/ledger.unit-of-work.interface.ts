@@ -18,6 +18,8 @@ export interface IJournalTxRepository {
      * @throws DomainError CONFLICT se alguma referência já tem lançamento
      */
     writeAll(entries: readonly JournalEntryEntity[]): Promise<void>;
+    /** Trava a linha do lançamento (`FOR UPDATE`) e o devolve; `null` se não é da empresa. */
+    lock(companyId: string, id: string): Promise<JournalEntryEntity | null>;
 }
 
 export interface IPresetTxRepository {
@@ -27,6 +29,8 @@ export interface IPresetTxRepository {
 
 export interface IAccountTxRepository {
     findRefs(companyId: string, ids: readonly string[]): Promise<AccountRef[]>;
+    /** Dos ids informados, os usados como controle de título ou como conta a receber/pagar de preset. */
+    controlAccountIds(companyId: string, ids: readonly string[]): Promise<Set<string>>;
 }
 
 export interface ITitleTxRepository {

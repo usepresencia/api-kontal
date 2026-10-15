@@ -18,4 +18,26 @@ export class AccountTxRepository implements IAccountTxRepository {
             },
         });
     }
+
+    async controlAccountIds(companyId: string, ids: readonly string[]): Promise<Set<string>> {
+        if (ids.length === 0) return new Set();
+        const titles = await this.client.title.findMany({
+            where: { companyId, controlAccountId: { in: [...ids] } },
+            select: { controlAccountId: true },
+            distinct: ['controlAccountId'],
+        });
+        const presets = await this.client.presetAccount.findMany({
+            where: {
+                accountId: { in: [...ids] },
+                role: { in: ['receivable', 'payable'] },
+                preset: { billingPlan: { companyId } },
+            },
+            select: { accountId: true },
+            distinct: ['accountId'],
+        });
+        return new Set([
+            ...titles.map(title => title.controlAccountId),
+            ...presets.map(item => item.accountId),
+        ]);
+    }
 }
