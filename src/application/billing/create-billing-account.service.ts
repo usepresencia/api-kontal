@@ -3,6 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { requirePlan } from '@/application/billing/require-plan.js';
 import { nextAccountCode } from '@/domain/billing/account-code.js';
 import { assertValidPlacement } from '@/domain/billing/account-hierarchy.policy.js';
+import type { AccountNature } from '@/domain/billing/account-nature.js';
+import { resolveNature } from '@/domain/billing/nature-resolution.js';
 import type { AccountType } from '@/domain/billing/account-type.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
@@ -22,6 +24,7 @@ export interface CreateBillingAccountInput {
     parentId?: string | null;
     name: string;
     accountType: AccountType;
+    nature?: AccountNature;
     isActive?: boolean;
 }
 
@@ -45,12 +48,14 @@ export class CreateBillingAccountService {
             ? await this.requireParent(companyId, input.billingPlanId, input.parentId)
             : null;
         const level = assertValidPlacement(input.accountType, parent);
+        const nature = resolveNature(parent?.nature ?? null, input.nature);
         const draft = BillingAccountEntity.draft({
             id: randomUUID(),
             billingPlanId: input.billingPlanId,
             parentId: input.parentId ?? null,
             name: input.name,
             accountType: input.accountType,
+            nature,
             isActive: input.isActive,
             level,
         });

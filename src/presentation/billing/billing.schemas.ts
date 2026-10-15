@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { pageQuerySchema } from '@/presentation/common/page-query.schema.js';
 
@@ -17,6 +18,7 @@ export const createBillingAccountSchema = z.object({
     parentId: z.uuid().nullish(),
     name,
     accountType: z.enum(AccountType),
+    nature: z.enum(AccountNature).optional(),
     isActive: z.boolean().optional(),
 });
 

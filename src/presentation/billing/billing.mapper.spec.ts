@@ -33,6 +33,7 @@ describe('toAccountResponse', () => {
             code: '1.1',
             level: 2,
             accountType: 'SYNTHETIC',
+            nature: 'ASSET',
             isActive: true,
             billingPlanId: 'p1',
             billingPlanName: 'Plano',

@@ -1,3 +1,4 @@
+import type { AccountNature } from '@/domain/billing/account-nature.js';
 import type { AccountType } from '@/domain/billing/account-type.js';
 import { requiredText } from '@/domain/required-text.js';
 
@@ -7,6 +8,7 @@ export interface BillingAccountRow {
     parentId: string | null;
     name: string;
     accountType: AccountType;
+    nature: AccountNature;
     isActive: boolean;
     code: string;
     level: number;
@@ -20,6 +22,7 @@ export interface NewBillingAccount {
     parentId: string | null;
     name: string;
     accountType: AccountType;
+    nature: AccountNature;
     isActive: boolean;
     level: number;
 }
@@ -31,6 +34,7 @@ export class BillingAccountEntity {
         readonly parentId: string | null,
         readonly name: string,
         readonly accountType: AccountType,
+        readonly nature: AccountNature,
         readonly isActive: boolean,
         readonly code: string,
         readonly level: number,
@@ -44,6 +48,7 @@ export class BillingAccountEntity {
         parentId: string | null;
         name: string;
         accountType: AccountType;
+        nature: AccountNature;
         isActive?: boolean;
         level: number;
     }): NewBillingAccount {
@@ -53,12 +58,13 @@ export class BillingAccountEntity {
             parentId: params.parentId,
             name: requiredText(params.name, 'Nome da conta'),
             accountType: params.accountType,
+            nature: params.nature,
             isActive: params.isActive ?? true,
             level: params.level,
         };
     }
 
-    /** Altera só nome, status e tipo; código, nível, plano e pai são imutáveis. */
+    /** Altera só nome, status e tipo; código, nível, natureza, plano e pai são imutáveis. */
     withChanges(changes: {
         name?: string;
         isActive?: boolean;
@@ -70,6 +76,7 @@ export class BillingAccountEntity {
             this.parentId,
             changes.name === undefined ? this.name : requiredText(changes.name, 'Nome da conta'),
             changes.accountType ?? this.accountType,
+            this.nature,
             changes.isActive ?? this.isActive,
             this.code,
             this.level,
@@ -84,6 +91,7 @@ export class BillingAccountEntity {
             row.parentId,
             row.name,
             row.accountType,
+            row.nature,
             row.isActive,
             row.code,
             row.level,

@@ -1,4 +1,8 @@
-import { ignoreUniqueConstraint, isUniqueConstraintError } from '@/utils/prisma.utils.js';
+import {
+    ignoreUniqueConstraint,
+    isForeignKeyConstraintError,
+    isUniqueConstraintError,
+} from '@/utils/prisma.utils.js';
 
 const p2002 = Object.assign(new Error('Unique constraint failed'), { code: 'P2002' });
 
@@ -26,5 +30,15 @@ describe('ignoreUniqueConstraint', () => {
     it('propaga qualquer outro erro', () => {
         const boom = new Error('boom');
         expect(() => ignoreUniqueConstraint(boom)).toThrow(boom);
+    });
+});
+
+describe('isForeignKeyConstraintError', () => {
+    it('reconhece o código P2003', () => {
+        expect(isForeignKeyConstraintError({ code: 'P2003' })).toBe(true);
+    });
+
+    it.each([[null], [undefined], ['P2003'], [{}], [{ code: 'P2002' }]])('rejeita %j', value => {
+        expect(isForeignKeyConstraintError(value)).toBe(false);
     });
 });
