@@ -3,6 +3,7 @@ import { BillingAccountPrismaRepository } from '@/infrastructure/persistence/bil
 import { BillingPlanPrismaRepository } from '@/infrastructure/persistence/billing-plan.prisma.repository.js';
 import { CompanyProfilePrismaRepository } from '@/infrastructure/persistence/company-profile.prisma.repository.js';
 import { CompanyPrismaRepository } from '@/infrastructure/persistence/company.prisma.repository.js';
+import { EntryReadPrismaRepository } from '@/infrastructure/persistence/entry-read.prisma.repository.js';
 import { LedgerPrismaUnitOfWork } from '@/infrastructure/persistence/ledger/ledger.prisma.unit-of-work.js';
 import { MembershipPrismaRepository } from '@/infrastructure/persistence/membership.prisma.repository.js';
 import {
@@ -10,13 +11,16 @@ import {
     BILLING_PLAN_REPOSITORY,
     COMPANY_PROFILE_REPOSITORY,
     COMPANY_REPOSITORY,
+    ENTRY_READ_REPOSITORY,
     LEDGER_UNIT_OF_WORK,
     MEMBERSHIP_REPOSITORY,
     PLATFORM_ACCESS_REPOSITORY,
     PRESET_REPOSITORY,
+    TITLE_READ_REPOSITORY,
     USER_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
+import { TitleReadPrismaRepository } from '@/infrastructure/persistence/title-read.prisma.repository.js';
 import { PlatformAccessPrismaRepository } from '@/infrastructure/persistence/platform-access.prisma.repository.js';
 import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.repository.js';
 
@@ -30,6 +34,8 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: BILLING_ACCOUNT_REPOSITORY, useClass: BillingAccountPrismaRepository },
         { provide: PRESET_REPOSITORY, useClass: PresetPrismaRepository },
         { provide: LEDGER_UNIT_OF_WORK, useClass: LedgerPrismaUnitOfWork },
+        { provide: TITLE_READ_REPOSITORY, useClass: TitleReadPrismaRepository },
+        { provide: ENTRY_READ_REPOSITORY, useClass: EntryReadPrismaRepository },
         { provide: MEMBERSHIP_REPOSITORY, useClass: MembershipPrismaRepository },
         { provide: PLATFORM_ACCESS_REPOSITORY, useClass: PlatformAccessPrismaRepository },
     ],
@@ -41,6 +47,8 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         BILLING_ACCOUNT_REPOSITORY,
         PRESET_REPOSITORY,
         LEDGER_UNIT_OF_WORK,
+        TITLE_READ_REPOSITORY,
+        ENTRY_READ_REPOSITORY,
         MEMBERSHIP_REPOSITORY,
         PLATFORM_ACCESS_REPOSITORY,
     ],
