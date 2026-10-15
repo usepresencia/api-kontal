@@ -1,3 +1,4 @@
+import type { AccountRef } from '@/domain/billing/account-ref.js';
 import type {
     BillingAccountEntity,
     NewBillingAccount,
@@ -34,6 +35,8 @@ export interface IBillingAccountRepository {
     hasChildren(id: string): Promise<boolean>;
     /** Indica se a conta é usada por linha do razão, baixa, preset ou título. */
     isInUse(accountId: string): Promise<boolean>;
+    /** Dados de compatibilidade das contas da empresa com os ids informados. */
+    findRefsByIds(companyId: string, ids: readonly string[]): Promise<AccountRef[]>;
     delete(companyId: string, id: string): Promise<void>;
     list(
         companyId: string,

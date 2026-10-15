@@ -303,3 +303,44 @@ describe('BillingAccountPrismaRepository.delete: conta referenciada', () => {
         await expect(repo.delete('c1', 'a1')).rejects.toBe(boom);
     });
 });
+
+describe('BillingAccountPrismaRepository.findRefsByIds', () => {
+    it('lê só as contas da empresa com os campos de compatibilidade', async () => {
+        const { repo, billingAccount } = makeRepo();
+        billingAccount.findMany.mockResolvedValue([
+            {
+                id: 'a1',
+                billingPlanId: 'p1',
+                accountType: 'ANALYTIC',
+                nature: 'ASSET',
+                isActive: true,
+            },
+        ]);
+        const refs = await repo.findRefsByIds('c1', ['a1', 'a2']);
+        expect(refs).toEqual([
+            {
+                id: 'a1',
+                billingPlanId: 'p1',
+                accountType: 'ANALYTIC',
+                nature: 'ASSET',
+                isActive: true,
+            },
+        ]);
+        expect(billingAccount.findMany).toHaveBeenCalledWith({
+            where: { id: { in: ['a1', 'a2'] }, billingPlan: { companyId: 'c1' } },
+            select: {
+                id: true,
+                billingPlanId: true,
+                accountType: true,
+                nature: true,
+                isActive: true,
+            },
+        });
+    });
+
+    it('sem ids não consulta o banco', async () => {
+        const { repo, billingAccount } = makeRepo();
+        await expect(repo.findRefsByIds('c1', [])).resolves.toEqual([]);
+        expect(billingAccount.findMany).not.toHaveBeenCalled();
+    });
+});
