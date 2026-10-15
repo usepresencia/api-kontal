@@ -47,7 +47,13 @@ export function fakeSeriesRead() {
 
 export function fakeTx() {
     return {
-        journal: { find: vi.fn(), findAll: vi.fn(), writeAll: vi.fn(), lock: vi.fn() },
+        journal: {
+            find: vi.fn(),
+            findAll: vi.fn(),
+            writeAll: vi.fn(),
+            lock: vi.fn(),
+            closedThrough: vi.fn().mockResolvedValue(null),
+        },
         presets: { find: vi.fn() },
         accounts: { findRefs: vi.fn(), controlAccountIds: vi.fn() },
         titles: {

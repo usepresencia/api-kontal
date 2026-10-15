@@ -18,6 +18,8 @@ export interface IJournalTxRepository {
      * @throws DomainError CONFLICT se alguma referência já tem lançamento
      */
     writeAll(entries: readonly JournalEntryEntity[]): Promise<void>;
+    /** Data até a qual o período da empresa está fechado (lê com `FOR KEY SHARE`); `null` se aberto. */
+    closedThrough(companyId: string): Promise<Date | null>;
     /** Trava a linha do lançamento (`FOR UPDATE`) e o devolve; `null` se não é da empresa. */
     lock(companyId: string, id: string): Promise<JournalEntryEntity | null>;
 }

@@ -19,6 +19,7 @@ const p2002 = Object.assign(new Error('dup'), { code: 'P2002' });
 
 function makeRepo() {
     const client = {
+        $queryRaw: vi.fn().mockResolvedValue([{ closedThrough: null }]),
         journalEntry: { findUnique: vi.fn(), createMany: vi.fn() },
         journalLine: { createMany: vi.fn() },
     };
@@ -158,5 +159,58 @@ describe('JournalTxRepository.lock', () => {
             include: { lines: true },
         });
         await expect(repo.lock('c1', 'x')).resolves.toBeNull();
+    });
+});
+
+describe('JournalTxRepository: trava de período', () => {
+    const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
+    const at = (
+        referenceId: string,
+        date: string,
+        referenceType: 'MANUAL' | 'CLOSING' = 'MANUAL',
+    ) =>
+        JournalEntryEntity.create({
+            id: `j-${referenceId}`,
+            companyId: 'c1',
+            date: day(date),
+            description: 'd',
+            referenceType,
+            referenceId,
+            lines: [
+                { accountId: 'a', debit: 100, credit: 0, memo: '' },
+                { accountId: 'b', debit: 0, credit: 100, memo: '' },
+            ],
+        });
+
+    it('closedThrough lê a trava da empresa com FOR KEY SHARE', async () => {
+        const { repo, client } = makeRepo();
+        client.$queryRaw.mockResolvedValueOnce([{ closedThrough: day('2026-09-30') }]);
+        await expect(repo.closedThrough('c1')).resolves.toEqual(day('2026-09-30'));
+        const [strings, ...values] = client.$queryRaw.mock.calls[0];
+        expect((strings as string[]).join('?')).toContain('FOR KEY SHARE');
+        expect(values).toEqual(['c1']);
+        client.$queryRaw.mockResolvedValueOnce([]);
+        await expect(repo.closedThrough('c1')).resolves.toBeNull();
+    });
+
+    it('writeAll recusa data fechada antes de gravar qualquer coisa', async () => {
+        const { repo, client } = makeRepo();
+        client.$queryRaw.mockResolvedValue([{ closedThrough: day('2026-09-30') }]);
+        await expect(
+            repo.writeAll([at('a', '2026-10-01'), at('b', '2026-09-30')]),
+        ).rejects.toMatchObject({ code: 'PERIOD_CLOSED' });
+        expect(client.journalEntry.createMany).not.toHaveBeenCalled();
+        expect(client.journalLine.createMany).not.toHaveBeenCalled();
+    });
+
+    it('writeAll grava datas abertas e a apuração em período fechado, esta sem consultar a trava', async () => {
+        const { repo, client } = makeRepo();
+        client.$queryRaw.mockResolvedValue([{ closedThrough: day('2026-09-30') }]);
+        await repo.writeAll([at('a', '2026-10-01')]);
+        expect(client.journalEntry.createMany).toHaveBeenCalledTimes(1);
+        client.$queryRaw.mockClear();
+        await repo.writeAll([at('closing', '2026-01-31', 'CLOSING')]);
+        expect(client.$queryRaw).not.toHaveBeenCalled();
+        expect(client.journalEntry.createMany).toHaveBeenCalledTimes(2);
     });
 });
