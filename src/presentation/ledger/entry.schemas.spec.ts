@@ -67,3 +67,32 @@ describe('listEntriesQuerySchema', () => {
         expect(listEntriesQuerySchema.safeParse({ titleId: 'x' }).success).toBe(false);
     });
 });
+
+describe('listEntriesQuerySchema: filtros do bloco 5', () => {
+    it('converte o período de pagamento e aceita tipo do título e conta', () => {
+        expect(
+            listEntriesQuerySchema.parse({
+                paidFrom: '2026-10-01',
+                paidTo: '2026-10-31',
+                titleType: 'INCOME',
+                billingAccountId: uuid,
+            }),
+        ).toEqual({
+            paidFrom: new Date('2026-10-01T00:00:00.000Z'),
+            paidTo: new Date('2026-10-31T00:00:00.000Z'),
+            titleType: 'INCOME',
+            billingAccountId: uuid,
+            page: 1,
+            pageSize: 10,
+        });
+    });
+
+    it.each([
+        { paidFrom: 'ontem' },
+        { paidTo: '31/10/2026' },
+        { titleType: 'OUTRO' },
+        { billingAccountId: 'x' },
+    ])('rejeita %j', query => {
+        expect(listEntriesQuerySchema.safeParse(query).success).toBe(false);
+    });
+});

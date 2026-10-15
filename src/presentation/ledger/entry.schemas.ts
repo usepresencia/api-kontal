@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { PaymentMethod } from '@/domain/entities/entry.entity.js';
+import { TitleType } from '@/domain/ledger/title-type.js';
 import { isoDateSchema } from '@/presentation/common/iso-date.js';
 import { moneySchema } from '@/presentation/common/money.schema.js';
 import { pageQuerySchema } from '@/presentation/common/page-query.schema.js';
@@ -33,6 +34,10 @@ export type UpdateEntryBody = z.infer<typeof updateEntrySchema>;
 
 export const listEntriesQuerySchema = pageQuerySchema.extend({
     titleId: z.uuid().optional(),
+    billingAccountId: z.uuid().optional(),
+    titleType: z.enum(TitleType).optional(),
+    paidFrom: isoDateSchema.optional(),
+    paidTo: isoDateSchema.optional(),
 });
 
 export type ListEntriesQuery = z.infer<typeof listEntriesQuerySchema>;

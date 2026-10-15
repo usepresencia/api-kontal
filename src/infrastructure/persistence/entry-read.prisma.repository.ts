@@ -10,7 +10,7 @@ import { toEntryEntity } from '@/infrastructure/persistence/entry.prisma.mapper.
 import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 
 const ENTRY_REFS = {
-    title: { select: { description: true } },
+    title: { select: { description: true, type: true } },
     billingAccount: { select: { name: true } },
 } as const;
 type EntryWithRefs = Prisma.EntryGetPayload<{ include: typeof ENTRY_REFS }>;
@@ -19,7 +19,18 @@ function toView(row: EntryWithRefs): EntryView {
     return {
         entry: toEntryEntity(row),
         titleDescription: row.title.description,
+        titleType: row.title.type,
         billingAccountName: row.billingAccount?.name ?? null,
+    };
+}
+
+function paidRange(filter: EntryFilter) {
+    if (!filter.paidFrom && !filter.paidTo) return {};
+    return {
+        paidAt: {
+            ...(filter.paidFrom ? { gte: filter.paidFrom } : {}),
+            ...(filter.paidTo ? { lte: filter.paidTo } : {}),
+        },
     };
 }
 
@@ -42,8 +53,13 @@ export class EntryReadPrismaRepository implements IEntryReadRepository {
         page: PageRequest,
     ): Promise<Page<EntryView>> {
         const where = {
-            title: { companyId },
+            title: {
+                companyId,
+                ...(filter.titleType ? { type: filter.titleType } : {}),
+            },
             ...(filter.titleId ? { titleId: filter.titleId } : {}),
+            ...(filter.billingAccountId ? { billingAccountId: filter.billingAccountId } : {}),
+            ...paidRange(filter),
         };
         const [rows, total] = await this.prisma.$transaction([
             this.prisma.entry.findMany({

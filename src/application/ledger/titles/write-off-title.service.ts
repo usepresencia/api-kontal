@@ -62,7 +62,12 @@ export class WriteOffTitleService {
             await tx.entries.insert(entry);
             await tx.titles.save(written);
             await tx.journal.writeAll([journal]);
-            return { entry, titleDescription: title.description, billingAccountName: null };
+            return {
+                entry,
+                titleDescription: title.description,
+                titleType: title.type,
+                billingAccountName: null,
+            };
         });
     }
 }
