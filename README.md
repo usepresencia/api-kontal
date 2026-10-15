@@ -37,6 +37,22 @@ interfaces de repositório; TypeScript puro), `application` (services),
 - **Desempenho:** leituras em uma query (`relationLoadStrategy: 'join'`) e listagens sempre paginadas; os
   testes e2e garantem que o número de queries não cresce com o número de linhas.
 
+## Núcleo contábil
+
+- **Presets** (`/api/v1/presets`): atalho de lançamento com as contas a receber, a pagar, de receita,
+  de despesa e as de juros, descontos e perdas. Cada conta é validada pela natureza do papel.
+- **Títulos** (`/api/v1/titles`): a pagar (`EXPENSE`) e a receber (`INCOME`). Tipo, valor, preset e
+  emissão são imutáveis; a criação grava o lançamento de partida dobrada (competência = emissão).
+- **Baixas** (`/api/v1/titles/:id/entries`, `/api/v1/entries`): pagamento com juros, multa e desconto
+  (total = principal + juros + multa − desconto) e baixa por perda (`POST /titles/:id/write-off`).
+  Excluir uma baixa ou um título posta o estorno; o razão nunca é alterado nem apagado.
+- **Séries** (`/api/v1/title-series`): parcelado (2 a 60 parcelas) e recorrente (semanal, mensal ou anual,
+  com fim por quantidade ou data, até 120 por série), gerados em lote.
+- **Valores:** sempre texto com até 2 casas (`"1234.50"`); datas `YYYY-MM-DD`.
+- **Consistência:** cada operação roda em uma transação que trava o título; se o lançamento falha, nada
+  é gravado. Os testes e2e conferem que o razão fecha (débitos = créditos e saldos de controle = saldos
+  em aberto).
+
 ## Como contribuir
 
 Usamos [Commitizen](https://commitizen.github.io/cz-cli/) e
