@@ -9,6 +9,7 @@ import { ErrorLogModule } from '@/infrastructure/logging/error-log.module.js';
 import { PersistenceModule } from '@/infrastructure/persistence/persistence.module.js';
 import { PrismaModule } from '@/infrastructure/persistence/prisma.module.js';
 import { AuthModule } from '@/presentation/auth/auth.module.js';
+import { BillingModule } from '@/presentation/billing/billing.module.js';
 import { CompaniesModule } from '@/presentation/companies/companies.module.js';
 import { HealthModule } from '@/presentation/health/health.module.js';
 
@@ -21,6 +22,7 @@ import { HealthModule } from '@/presentation/health/health.module.js';
         TenantAccessModule,
         AuthModule,
         CompaniesModule,
+        BillingModule,
         HealthModule,
     ],
     providers: [
