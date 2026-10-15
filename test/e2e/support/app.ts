@@ -14,7 +14,7 @@ import { ProbeController } from '@test/e2e/support/probe.controller.js';
 
 async function resetDatabase(prisma: PrismaService): Promise<void> {
     await prisma.$executeRawUnsafe(
-        'TRUNCATE TABLE "BillingAccount", "BillingPlan", "CompanyAddress", "Membership", "PlatformAccess", "User", "Company" RESTART IDENTITY CASCADE',
+        'TRUNCATE TABLE "JournalLine", "JournalEntry", "Entry", "Title", "TitleSeries", "PresetAccount", "Preset", "BillingAccount", "BillingPlan", "CompanyAddress", "Membership", "PlatformAccess", "User", "Company" RESTART IDENTITY CASCADE',
     );
 }
 
