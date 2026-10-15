@@ -27,6 +27,7 @@ export function fakeAccounts() {
         update: vi.fn(),
         hasChildren: vi.fn(),
         isInUse: vi.fn(),
+        findRefsByIds: vi.fn(),
         delete: vi.fn(),
         list: vi.fn(),
         listByPlan: vi.fn(),

@@ -11,8 +11,10 @@ import {
     COMPANY_REPOSITORY,
     MEMBERSHIP_REPOSITORY,
     PLATFORM_ACCESS_REPOSITORY,
+    PRESET_REPOSITORY,
     USER_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
+import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
 import { PlatformAccessPrismaRepository } from '@/infrastructure/persistence/platform-access.prisma.repository.js';
 import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.repository.js';
 
@@ -24,6 +26,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: COMPANY_PROFILE_REPOSITORY, useClass: CompanyProfilePrismaRepository },
         { provide: BILLING_PLAN_REPOSITORY, useClass: BillingPlanPrismaRepository },
         { provide: BILLING_ACCOUNT_REPOSITORY, useClass: BillingAccountPrismaRepository },
+        { provide: PRESET_REPOSITORY, useClass: PresetPrismaRepository },
         { provide: MEMBERSHIP_REPOSITORY, useClass: MembershipPrismaRepository },
         { provide: PLATFORM_ACCESS_REPOSITORY, useClass: PlatformAccessPrismaRepository },
     ],
@@ -33,6 +36,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         COMPANY_PROFILE_REPOSITORY,
         BILLING_PLAN_REPOSITORY,
         BILLING_ACCOUNT_REPOSITORY,
+        PRESET_REPOSITORY,
         MEMBERSHIP_REPOSITORY,
         PLATFORM_ACCESS_REPOSITORY,
     ],
