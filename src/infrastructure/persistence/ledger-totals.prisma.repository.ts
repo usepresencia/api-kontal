@@ -50,6 +50,7 @@ export class LedgerTotalsPrismaRepository implements ILedgerTotalsRepository {
             WHERE j."companyId" = ${companyId}
               AND a."billingPlanId" = ${planId}
               AND a."nature" IN ('REVENUE', 'EXPENSE')
+              AND j."referenceType" NOT IN ('CLOSING', 'CLOSING_REVERSAL')
               AND j."date" >= ${start}
               AND j."date" <= ${end}
             GROUP BY l."accountId", to_char(j."date", 'YYYY-MM')`;
