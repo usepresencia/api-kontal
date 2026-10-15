@@ -53,6 +53,25 @@ interfaces de repositório; TypeScript puro), `application` (services),
   é gravado. Os testes e2e conferem que o razão fecha (débitos = créditos e saldos de controle = saldos
   em aberto).
 
+## Relatórios e lançamentos manuais
+
+- **Categorias nas contas** (`/api/v1/billing-accounts`): `dreCategory` (linha do DRE por função, CPC 26)
+  em receitas e despesas e `balanceCategory` (circulante, não circulante, PL) nas patrimoniais. Contas sem
+  categoria usam receita bruta, despesa operacional ou circulante e aparecem em `unclassified`.
+- **DRE** (`GET /api/v1/reports/dre`): receita bruta, deduções, líquida, custo, lucro bruto, despesas
+  operacionais, outros resultados, resultado financeiro, IR/CSLL e resultado líquido; `groupBy=month`.
+- **Balancete** (`GET /api/v1/reports/trial-balance`): saldo anterior, débitos, créditos e saldo final com
+  lado (`D`/`C`) por conta, até `maxLevel`, com as provas de fechamento.
+- **Balanço patrimonial** (`GET /api/v1/reports/balance-sheet`): ativo e passivo circulante e não circulante,
+  PL com o resultado acumulado ainda não apurado; ativo = passivo + PL.
+- **Livro diário** (`GET /api/v1/reports/daily-journal`) e **razão da conta**
+  (`GET /api/v1/reports/account-ledger`, por lançamento ou `groupBy=day`).
+- **Lançamentos** (`/api/v1/journal-entries`): consulta com filtros, lançamento manual balanceado (contas
+  analíticas do mesmo plano, fora das contas de controle de títulos) e estorno (`POST /:id/reverse`).
+  Lançamentos são numerados e nunca editados nem apagados.
+- **Regime:** competência pelo razão; todo relatório é de um plano (`billingPlanId`, opcional quando a
+  empresa tem um só). Os testes e2e conferem a conciliação entre os relatórios.
+
 ## Como contribuir
 
 Usamos [Commitizen](https://commitizen.github.io/cz-cli/) e
