@@ -46,12 +46,12 @@ export interface DreReport {
     months: DreMonth[] | null;
 }
 
-const isRevenue = (account: ReportAccount) => account.nature === AccountNature.REVENUE;
-const isResult = (account: ReportAccount) =>
+export const isRevenue = (account: ReportAccount) => account.nature === AccountNature.REVENUE;
+export const isResult = (account: ReportAccount) =>
     account.nature === AccountNature.REVENUE || account.nature === AccountNature.EXPENSE;
 
 /** Valor no DRE: receita = crédito − débito; despesa = débito − crédito. */
-function amountOf(account: ReportAccount, movement: MonthlyMovement): Cents {
+export function amountOf(account: ReportAccount, movement: MonthlyMovement): Cents {
     return isRevenue(account) ? movement.credit - movement.debit : movement.debit - movement.credit;
 }
 
