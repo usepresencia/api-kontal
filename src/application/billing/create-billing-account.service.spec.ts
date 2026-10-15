@@ -2,6 +2,7 @@ import { CreateBillingAccountService } from '@/application/billing/create-billin
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { CostBehavior } from '@/domain/billing/cost-behavior.js';
 import { DreCategory } from '@/domain/billing/dre-category.js';
 import {
     accountFixture,
@@ -184,6 +185,34 @@ describe('CreateBillingAccountService', () => {
         await expect(
             service.execute('c1', { ...input, balanceCategory: BalanceCategory.CURRENT_ASSET }),
         ).rejects.toMatchObject({ code: 'BALANCE_CATEGORY_INVALID' });
+        expect(accounts.insertWithNextCode).not.toHaveBeenCalled();
+    });
+
+    it('conta de despesa nova herda o comportamento de custo do pai; informado vence; null limpa', async () => {
+        accounts.findParent.mockResolvedValue(
+            accountFixture({
+                id: 'a0',
+                nature: AccountNature.EXPENSE,
+                costBehavior: CostBehavior.VARIABLE,
+            }),
+        );
+        const { nature: _nature, ...withoutNature } = input;
+        await service.execute('c1', { ...withoutNature, parentId: 'a0' });
+        expect(accounts.insertWithNextCode.mock.calls[0][0].costBehavior).toBe('VARIABLE');
+        await service.execute('c1', {
+            ...withoutNature,
+            parentId: 'a0',
+            costBehavior: CostBehavior.FIXED,
+        });
+        expect(accounts.insertWithNextCode.mock.calls[1][0].costBehavior).toBe('FIXED');
+        await service.execute('c1', { ...withoutNature, parentId: 'a0', costBehavior: null });
+        expect(accounts.insertWithNextCode.mock.calls[2][0].costBehavior).toBeNull();
+    });
+
+    it('comportamento de custo em conta que não é de despesa é recusado sem gravar', async () => {
+        await expect(
+            service.execute('c1', { ...input, costBehavior: CostBehavior.FIXED }),
+        ).rejects.toMatchObject({ code: 'COST_BEHAVIOR_INVALID' });
         expect(accounts.insertWithNextCode).not.toHaveBeenCalled();
     });
 });

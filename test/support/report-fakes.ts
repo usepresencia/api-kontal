@@ -21,6 +21,7 @@ export function reportAccount(
         accountType: AccountType.ANALYTIC,
         dreCategory: null,
         balanceCategory: null,
+        costBehavior: null,
         ...overrides,
     };
 }

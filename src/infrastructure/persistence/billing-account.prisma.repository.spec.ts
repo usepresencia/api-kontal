@@ -13,6 +13,7 @@ const accountRow = {
     nature: 'ASSET' as const,
     dreCategory: null,
     balanceCategory: null,
+    costBehavior: null,
     isActive: true,
     code: '1.1',
     sortKey: '000000001.000000001',
@@ -30,6 +31,7 @@ const draft = {
     nature: AccountNature.ASSET,
     dreCategory: null,
     balanceCategory: null,
+    costBehavior: null,
     isActive: true,
     level: 1,
 };
@@ -159,6 +161,7 @@ describe('BillingAccountPrismaRepository: escritas escopadas por empresa', () =>
                 accountType: 'ANALYTIC',
                 dreCategory: null,
                 balanceCategory: null,
+                costBehavior: null,
             },
         });
     });

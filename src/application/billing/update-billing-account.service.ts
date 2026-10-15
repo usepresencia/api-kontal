@@ -3,6 +3,7 @@ import { requireAccount } from '@/application/billing/require-account.js';
 import { assertCanChangeType } from '@/domain/billing/account-hierarchy.policy.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import type { BalanceCategory } from '@/domain/billing/balance-category.js';
+import type { CostBehavior } from '@/domain/billing/cost-behavior.js';
 import type { DreCategory } from '@/domain/billing/dre-category.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
@@ -28,6 +29,7 @@ export class UpdateBillingAccountService {
             accountType?: AccountType;
             dreCategory?: DreCategory | null;
             balanceCategory?: BalanceCategory | null;
+            costBehavior?: CostBehavior | null;
         },
     ): Promise<BillingAccountWithRefs> {
         const current = await requireAccount(this.accounts, companyId, id);

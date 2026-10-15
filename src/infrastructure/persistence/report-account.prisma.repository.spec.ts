@@ -32,6 +32,7 @@ describe('ReportAccountPrismaRepository.list', () => {
                 accountType: true,
                 dreCategory: true,
                 balanceCategory: true,
+                costBehavior: true,
             },
         });
     });

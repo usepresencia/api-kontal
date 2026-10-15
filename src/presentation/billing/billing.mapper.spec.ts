@@ -36,6 +36,7 @@ describe('toAccountResponse', () => {
             nature: 'ASSET',
             dreCategory: null,
             balanceCategory: null,
+            costBehavior: null,
             isActive: true,
             billingPlanId: 'p1',
             billingPlanName: 'Plano',

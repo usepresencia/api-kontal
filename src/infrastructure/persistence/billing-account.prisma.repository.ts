@@ -87,6 +87,7 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
                 accountType: account.accountType,
                 dreCategory: account.dreCategory,
                 balanceCategory: account.balanceCategory,
+                costBehavior: account.costBehavior,
             },
         });
     }

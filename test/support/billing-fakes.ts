@@ -1,6 +1,7 @@
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import type { BalanceCategory } from '@/domain/billing/balance-category.js';
+import type { CostBehavior } from '@/domain/billing/cost-behavior.js';
 import type { DreCategory } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { BillingPlanEntity } from '@/domain/entities/billing-plan.entity.js';
@@ -51,6 +52,7 @@ export function accountFixture(
         nature: AccountNature;
         dreCategory: DreCategory | null;
         balanceCategory: BalanceCategory | null;
+        costBehavior: CostBehavior | null;
         code: string;
         level: number;
     }> = {},
@@ -64,6 +66,7 @@ export function accountFixture(
         nature: overrides.nature ?? AccountNature.ASSET,
         dreCategory: overrides.dreCategory ?? null,
         balanceCategory: overrides.balanceCategory ?? null,
+        costBehavior: overrides.costBehavior ?? null,
         isActive: true,
         code: overrides.code ?? '1',
         level: overrides.level ?? 1,

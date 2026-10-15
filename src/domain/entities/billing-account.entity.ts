@@ -1,6 +1,7 @@
 import type { AccountNature } from '@/domain/billing/account-nature.js';
 import type { AccountType } from '@/domain/billing/account-type.js';
 import { type BalanceCategory, balanceCategoryRules } from '@/domain/billing/balance-category.js';
+import { type CostBehavior, costBehaviorRules } from '@/domain/billing/cost-behavior.js';
 import { type DreCategory, dreCategoryRules } from '@/domain/billing/dre-category.js';
 import { requiredText } from '@/domain/required-text.js';
 
@@ -13,6 +14,7 @@ export interface BillingAccountRow {
     nature: AccountNature;
     dreCategory: DreCategory | null;
     balanceCategory: BalanceCategory | null;
+    costBehavior: CostBehavior | null;
     isActive: boolean;
     code: string;
     level: number;
@@ -29,6 +31,7 @@ export interface NewBillingAccount {
     nature: AccountNature;
     dreCategory: DreCategory | null;
     balanceCategory: BalanceCategory | null;
+    costBehavior: CostBehavior | null;
     isActive: boolean;
     level: number;
 }
@@ -43,6 +46,7 @@ export class BillingAccountEntity {
         readonly nature: AccountNature,
         readonly dreCategory: DreCategory | null,
         readonly balanceCategory: BalanceCategory | null,
+        readonly costBehavior: CostBehavior | null,
         readonly isActive: boolean,
         readonly code: string,
         readonly level: number,
@@ -59,6 +63,7 @@ export class BillingAccountEntity {
         nature: AccountNature;
         dreCategory: DreCategory | null;
         balanceCategory: BalanceCategory | null;
+        costBehavior: CostBehavior | null;
         isActive?: boolean;
         level: number;
     }): NewBillingAccount {
@@ -71,6 +76,7 @@ export class BillingAccountEntity {
             nature: params.nature,
             dreCategory: params.dreCategory,
             balanceCategory: params.balanceCategory,
+            costBehavior: params.costBehavior,
             isActive: params.isActive ?? true,
             level: params.level,
         };
@@ -78,7 +84,7 @@ export class BillingAccountEntity {
 
     /**
      * Altera nome, status, tipo e categorias; código, nível, natureza, plano e pai são imutáveis.
-     * @throws DomainError DRE_CATEGORY_INVALID, BALANCE_CATEGORY_INVALID
+     * @throws DomainError DRE_CATEGORY_INVALID, BALANCE_CATEGORY_INVALID, COST_BEHAVIOR_INVALID
      */
     withChanges(changes: {
         name?: string;
@@ -86,6 +92,7 @@ export class BillingAccountEntity {
         accountType?: AccountType;
         dreCategory?: DreCategory | null;
         balanceCategory?: BalanceCategory | null;
+        costBehavior?: CostBehavior | null;
     }): BillingAccountEntity {
         const dreCategory =
             changes.dreCategory === undefined ? this.dreCategory : changes.dreCategory;
@@ -93,6 +100,9 @@ export class BillingAccountEntity {
             changes.balanceCategory === undefined ? this.balanceCategory : changes.balanceCategory;
         dreCategoryRules.assert(this.nature, dreCategory);
         balanceCategoryRules.assert(this.nature, balanceCategory);
+        const costBehavior =
+            changes.costBehavior === undefined ? this.costBehavior : changes.costBehavior;
+        costBehaviorRules.assert(this.nature, costBehavior);
         return new BillingAccountEntity(
             this.id,
             this.billingPlanId,
@@ -102,6 +112,7 @@ export class BillingAccountEntity {
             this.nature,
             dreCategory,
             balanceCategory,
+            costBehavior,
             changes.isActive ?? this.isActive,
             this.code,
             this.level,
@@ -119,6 +130,7 @@ export class BillingAccountEntity {
             row.nature,
             row.dreCategory,
             row.balanceCategory,
+            row.costBehavior,
             row.isActive,
             row.code,
             row.level,

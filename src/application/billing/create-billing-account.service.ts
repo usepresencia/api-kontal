@@ -7,6 +7,7 @@ import type { AccountNature } from '@/domain/billing/account-nature.js';
 import { resolveNature } from '@/domain/billing/nature-resolution.js';
 import type { AccountType } from '@/domain/billing/account-type.js';
 import { type BalanceCategory, balanceCategoryRules } from '@/domain/billing/balance-category.js';
+import { type CostBehavior, costBehaviorRules } from '@/domain/billing/cost-behavior.js';
 import { type DreCategory, dreCategoryRules } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
@@ -29,6 +30,7 @@ export interface CreateBillingAccountInput {
     nature?: AccountNature;
     dreCategory?: DreCategory | null;
     balanceCategory?: BalanceCategory | null;
+    costBehavior?: CostBehavior | null;
     isActive?: boolean;
 }
 
@@ -63,6 +65,11 @@ export class CreateBillingAccountService {
             parent?.balanceCategory ?? null,
             input.balanceCategory,
         );
+        const costBehavior = costBehaviorRules.resolve(
+            nature,
+            parent?.costBehavior ?? null,
+            input.costBehavior,
+        );
         const draft = BillingAccountEntity.draft({
             id: randomUUID(),
             billingPlanId: input.billingPlanId,
@@ -72,6 +79,7 @@ export class CreateBillingAccountService {
             nature,
             dreCategory,
             balanceCategory,
+            costBehavior,
             isActive: input.isActive,
             level,
         });
