@@ -177,3 +177,94 @@ export async function runReportScenario(
     await api().post(`/api/v1/titles/${titleC.id}/write-off`).set(headers).send({}).expect(201);
     return { manual, titleA, titleB, titleC, paymentA, paymentB };
 }
+
+interface Balance {
+    amount: string;
+    side: 'D' | 'C';
+}
+
+interface TreeNode {
+    id: string;
+    amount: string;
+    children: TreeNode[];
+}
+
+const signed = (text: string) =>
+    text.startsWith('-') ? -parseMoney(text.slice(1)) : parseMoney(text);
+const raw = (balance: Balance) => (balance.side === 'D' ? 1 : -1) * parseMoney(balance.amount);
+const flatten = (nodes: TreeNode[]): TreeNode[] =>
+    nodes.flatMap(node => [node, ...flatten(node.children)]);
+
+function dayBefore(iso: string): string {
+    const date = new Date(`${iso}T00:00:00.000Z`);
+    date.setUTCDate(date.getUTCDate() - 1);
+    return date.toISOString().slice(0, 10);
+}
+
+/**
+ * Confere pelas rotas: balancete fechado, ativo = passivo + PL, DRE = variação do resultado
+ * acumulado, razão = balancete = balanço por conta patrimonial e diário = débitos do balancete.
+ */
+export async function expectReportsReconciled(
+    api: Api,
+    headers: Record<string, string>,
+    start: string,
+    end: string,
+): Promise<void> {
+    const get = async (path: string) =>
+        (await api().get(`/api/v1/reports/${path}`).set(headers).expect(200)).body;
+
+    const trial = await get(`trial-balance?start=${start}&end=${end}`);
+    expect(trial.totals.debits).toBe(trial.totals.credits);
+    expect(trial.totals.openingDebitBalances).toBe(trial.totals.openingCreditBalances);
+    expect(trial.totals.closingDebitBalances).toBe(trial.totals.closingCreditBalances);
+
+    const sheet = await get(`balance-sheet?date=${end}`);
+    expect(sheet.assets.total).toBe(sheet.liabilitiesAndEquity);
+
+    const dre = await get(`dre?start=${start}&end=${end}`);
+    const before = await get(`balance-sheet?date=${dayBefore(start)}`);
+    expect(signed(dre.lines.netResult)).toBe(
+        signed(sheet.equity.accumulatedResult) - signed(before.equity.accumulatedResult),
+    );
+
+    const groups = [
+        sheet.assets.current,
+        sheet.assets.nonCurrent,
+        sheet.liabilities.current,
+        sheet.liabilities.nonCurrent,
+        sheet.equity.accounts,
+    ];
+    const sheetAmounts = new Map(
+        groups.flatMap(group => flatten(group.tree)).map(node => [node.id, signed(node.amount)]),
+    );
+    const patrimonial = (
+        trial.lines as {
+            accountId: string;
+            nature: string;
+            accountType: string;
+            closingBalance: Balance;
+        }[]
+    ).filter(
+        line =>
+            line.accountType === 'ANALYTIC' &&
+            ['ASSET', 'LIABILITY', 'EQUITY'].includes(line.nature),
+    );
+    for (const line of patrimonial) {
+        const ledger = await get(
+            `account-ledger?accountId=${line.accountId}&start=${start}&end=${end}&groupBy=day`,
+        );
+        expect(ledger.closingBalance).toEqual(line.closingBalance);
+        const natural =
+            line.nature === 'ASSET' ? raw(line.closingBalance) : -raw(line.closingBalance);
+        expect(sheetAmounts.get(line.accountId)).toBe(natural);
+    }
+
+    let debits = 0;
+    for (let page = 1, total = 1; (page - 1) * 31 < total; page++) {
+        const body = await get(`daily-journal?start=${start}&end=${end}&pageSize=31&page=${page}`);
+        for (const day of body.items) debits += parseMoney(day.totalDebits);
+        total = body.total;
+    }
+    expect(debits).toBe(parseMoney(trial.totals.debits));
+}
