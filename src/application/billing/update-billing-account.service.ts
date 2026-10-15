@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { requireAccount } from '@/application/billing/require-account.js';
 import { assertCanChangeType } from '@/domain/billing/account-hierarchy.policy.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import type { BalanceCategory } from '@/domain/billing/balance-category.js';
+import type { DreCategory } from '@/domain/billing/dre-category.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
 import type {
@@ -16,11 +18,17 @@ export class UpdateBillingAccountService {
         @Inject(BILLING_ACCOUNT_REPOSITORY) private readonly accounts: IBillingAccountRepository,
     ) {}
 
-    /** Altera nome, status e tipo; valida filhas ao virar analítica e uso ao virar sintética. */
+    /** Altera nome, status, tipo e categorias; valida filhas ao virar analítica e uso ao virar sintética. */
     async execute(
         companyId: string,
         id: string,
-        changes: { name?: string; isActive?: boolean; accountType?: AccountType },
+        changes: {
+            name?: string;
+            isActive?: boolean;
+            accountType?: AccountType;
+            dreCategory?: DreCategory | null;
+            balanceCategory?: BalanceCategory | null;
+        },
     ): Promise<BillingAccountWithRefs> {
         const current = await requireAccount(this.accounts, companyId, id);
         const { account } = current;

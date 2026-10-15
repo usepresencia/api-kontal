@@ -78,6 +78,22 @@ export function createAccountFixture(
         name?: string;
         accountType?: 'ANALYTIC' | 'SYNTHETIC';
         nature?: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
+        dreCategory?:
+            | 'GROSS_REVENUE'
+            | 'FINANCIAL_REVENUE'
+            | 'OTHER_REVENUE'
+            | 'REVENUE_DEDUCTION'
+            | 'COST_OF_SALES'
+            | 'OPERATING_EXPENSE'
+            | 'FINANCIAL_EXPENSE'
+            | 'OTHER_EXPENSE'
+            | 'INCOME_TAX';
+        balanceCategory?:
+            | 'CURRENT_ASSET'
+            | 'NON_CURRENT_ASSET'
+            | 'CURRENT_LIABILITY'
+            | 'NON_CURRENT_LIABILITY'
+            | 'EQUITY';
     },
 ) {
     return db.billingAccount.create({
@@ -88,6 +104,8 @@ export function createAccountFixture(
             name: params.name ?? `Conta ${params.code}`,
             accountType: params.accountType ?? 'SYNTHETIC',
             nature: params.nature ?? 'ASSET',
+            dreCategory: params.dreCategory ?? null,
+            balanceCategory: params.balanceCategory ?? null,
             code: params.code,
             sortKey: toSortKey(params.code),
             level: params.level,

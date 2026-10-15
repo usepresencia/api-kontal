@@ -1,5 +1,7 @@
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { DreCategory } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 
@@ -10,6 +12,8 @@ const draftParams = {
     name: ' Ativo ',
     accountType: AccountType.SYNTHETIC,
     nature: AccountNature.ASSET,
+    dreCategory: null,
+    balanceCategory: null,
     level: 1,
 };
 
@@ -22,6 +26,8 @@ describe('BillingAccountEntity.draft', () => {
             level: 1,
             parentId: null,
             nature: 'ASSET',
+            dreCategory: null,
+            balanceCategory: null,
         });
     });
 
@@ -46,6 +52,8 @@ describe('BillingAccountEntity', () => {
         name: 'Caixa',
         accountType: AccountType.ANALYTIC,
         nature: AccountNature.LIABILITY,
+        dreCategory: null,
+        balanceCategory: null,
         isActive: true,
         code: '1.1',
         level: 2,
@@ -76,5 +84,23 @@ describe('BillingAccountEntity', () => {
 
     it('withChanges rejeita nome vazio', () => {
         expect(() => account.withChanges({ name: '' })).toThrow(DomainError);
+    });
+
+    it('withChanges troca ou limpa as categorias compatíveis com a natureza', () => {
+        const changed = account.withChanges({
+            balanceCategory: BalanceCategory.NON_CURRENT_LIABILITY,
+        });
+        expect(changed.balanceCategory).toBe('NON_CURRENT_LIABILITY');
+        expect(changed.withChanges({ balanceCategory: null }).balanceCategory).toBeNull();
+        expect(account.withChanges({}).dreCategory).toBeNull();
+    });
+
+    it('withChanges recusa categoria incompatível com a natureza', () => {
+        expect(() => account.withChanges({ dreCategory: DreCategory.GROSS_REVENUE })).toThrow(
+            expect.objectContaining({ code: 'DRE_CATEGORY_INVALID' }),
+        );
+        expect(() =>
+            account.withChanges({ balanceCategory: BalanceCategory.CURRENT_ASSET }),
+        ).toThrow(expect.objectContaining({ code: 'BALANCE_CATEGORY_INVALID' }));
     });
 });

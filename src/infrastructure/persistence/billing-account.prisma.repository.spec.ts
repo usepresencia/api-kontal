@@ -11,6 +11,8 @@ const accountRow = {
     name: 'Caixa',
     accountType: 'ANALYTIC' as const,
     nature: 'ASSET' as const,
+    dreCategory: null,
+    balanceCategory: null,
     isActive: true,
     code: '1.1',
     sortKey: '000000001.000000001',
@@ -26,6 +28,8 @@ const draft = {
     name: 'Passivo',
     accountType: AccountType.SYNTHETIC,
     nature: AccountNature.ASSET,
+    dreCategory: null,
+    balanceCategory: null,
     isActive: true,
     level: 1,
 };
@@ -144,12 +148,18 @@ describe('BillingAccountPrismaRepository: leituras escopadas por empresa', () =>
 });
 
 describe('BillingAccountPrismaRepository: escritas escopadas por empresa', () => {
-    it('update altera só nome, status e tipo da conta da própria empresa', async () => {
+    it('update altera nome, status, tipo e categorias da conta da própria empresa', async () => {
         const { repo, billingAccount } = makeRepo();
         await repo.update('c1', BillingAccountEntity.fromPersistence(accountRow));
         expect(billingAccount.updateMany).toHaveBeenCalledWith({
             where: { id: 'a1', billingPlan: { companyId: 'c1' } },
-            data: { name: 'Caixa', isActive: true, accountType: 'ANALYTIC' },
+            data: {
+                name: 'Caixa',
+                isActive: true,
+                accountType: 'ANALYTIC',
+                dreCategory: null,
+                balanceCategory: null,
+            },
         });
     });
 

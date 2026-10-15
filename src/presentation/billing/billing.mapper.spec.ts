@@ -34,6 +34,8 @@ describe('toAccountResponse', () => {
             level: 2,
             accountType: 'SYNTHETIC',
             nature: 'ASSET',
+            dreCategory: null,
+            balanceCategory: null,
             isActive: true,
             billingPlanId: 'p1',
             billingPlanName: 'Plano',

@@ -1,5 +1,7 @@
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import type { BalanceCategory } from '@/domain/billing/balance-category.js';
+import type { DreCategory } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { BillingPlanEntity } from '@/domain/entities/billing-plan.entity.js';
 import type {
@@ -47,6 +49,8 @@ export function accountFixture(
         parentId: string | null;
         accountType: AccountType;
         nature: AccountNature;
+        dreCategory: DreCategory | null;
+        balanceCategory: BalanceCategory | null;
         code: string;
         level: number;
     }> = {},
@@ -58,6 +62,8 @@ export function accountFixture(
         name: 'Ativo',
         accountType: overrides.accountType ?? AccountType.SYNTHETIC,
         nature: overrides.nature ?? AccountNature.ASSET,
+        dreCategory: overrides.dreCategory ?? null,
+        balanceCategory: overrides.balanceCategory ?? null,
         isActive: true,
         code: overrides.code ?? '1',
         level: overrides.level ?? 1,
