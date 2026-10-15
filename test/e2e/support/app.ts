@@ -49,6 +49,8 @@ export function useTestApp() {
         api: () => request(app.getHttpServer()),
         db: () => prisma,
         queries: () => counter,
+        resolve: <T>(token: symbol | (abstract new (...args: never[]) => T)) =>
+            app.get<T>(token as never),
     };
 }
 
