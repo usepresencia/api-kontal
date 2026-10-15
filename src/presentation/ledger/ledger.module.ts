@@ -3,6 +3,8 @@ import { CreateManualEntryService } from '@/application/ledger/journal/create-ma
 import { GetJournalEntryService } from '@/application/ledger/journal/get-journal-entry.service.js';
 import { ListJournalEntriesService } from '@/application/ledger/journal/list-journal-entries.service.js';
 import { ReverseManualEntryService } from '@/application/ledger/journal/reverse-manual-entry.service.js';
+import { ClosePeriodService } from '@/application/ledger/periods/close-period.service.js';
+import { ListPeriodClosingsService } from '@/application/ledger/periods/list-period-closings.service.js';
 import { CreateEntryService } from '@/application/ledger/entries/create-entry.service.js';
 import { DeleteEntryService } from '@/application/ledger/entries/delete-entry.service.js';
 import { GetEntryService } from '@/application/ledger/entries/get-entry.service.js';
@@ -26,6 +28,7 @@ import { UpdateTitleService } from '@/application/ledger/titles/update-title.ser
 import { WriteOffTitleService } from '@/application/ledger/titles/write-off-title.service.js';
 import { EntriesController } from '@/presentation/ledger/entries.controller.js';
 import { JournalEntriesController } from '@/presentation/ledger/journal-entries.controller.js';
+import { PeriodClosingsController } from '@/presentation/ledger/period-closings.controller.js';
 import { PresetsController } from '@/presentation/ledger/presets.controller.js';
 import { TitleEntriesController } from '@/presentation/ledger/title-entries.controller.js';
 import { TitleSeriesController } from '@/presentation/ledger/title-series.controller.js';
@@ -39,6 +42,7 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         EntriesController,
         TitleSeriesController,
         JournalEntriesController,
+        PeriodClosingsController,
     ],
     providers: [
         CreatePresetService,
@@ -66,6 +70,8 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         ListJournalEntriesService,
         CreateManualEntryService,
         ReverseManualEntryService,
+        ClosePeriodService,
+        ListPeriodClosingsService,
     ],
 })
 export class LedgerModule {}

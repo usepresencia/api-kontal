@@ -53,6 +53,7 @@ export function fakeTx() {
             writeAll: vi.fn(),
             lock: vi.fn(),
             closedThrough: vi.fn().mockResolvedValue(null),
+            earliestDate: vi.fn(),
         },
         presets: { find: vi.fn() },
         accounts: { findRefs: vi.fn(), controlAccountIds: vi.fn() },
@@ -70,6 +71,14 @@ export function fakeTx() {
             save: vi.fn(),
             delete: vi.fn(),
             hasWriteOff: vi.fn(),
+        },
+        periods: {
+            lockCompany: vi.fn(),
+            latest: vi.fn(),
+            insert: vi.fn(),
+            delete: vi.fn(),
+            setClosedThrough: vi.fn(),
+            resultBalances: vi.fn(),
         },
         series: {
             insert: vi.fn(),

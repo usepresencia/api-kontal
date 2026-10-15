@@ -25,6 +25,7 @@ describe('LedgerPrismaUnitOfWork.run', () => {
                     'titles',
                     'entries',
                     'series',
+                    'periods',
                 ]),
             );
             return 42;

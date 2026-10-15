@@ -214,3 +214,17 @@ describe('JournalTxRepository: trava de período', () => {
         expect(client.journalEntry.createMany).toHaveBeenCalledTimes(2);
     });
 });
+
+describe('JournalTxRepository.earliestDate', () => {
+    it('devolve a data do lançamento mais antigo da empresa ou null', async () => {
+        const { repo, client } = makeRepo();
+        client.$queryRaw
+            .mockResolvedValueOnce([{ date: new Date('2026-03-10T00:00:00.000Z') }])
+            .mockResolvedValueOnce([{ date: null }]);
+        await expect(repo.earliestDate('c1')).resolves.toEqual(
+            new Date('2026-03-10T00:00:00.000Z'),
+        );
+        await expect(repo.earliestDate('c1')).resolves.toBeNull();
+        expect((client.$queryRaw.mock.calls[0][0] as string[]).join('?')).toContain('MIN("date")');
+    });
+});

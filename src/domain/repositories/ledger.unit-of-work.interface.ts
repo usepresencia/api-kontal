@@ -5,6 +5,7 @@ import type { SeriesEntity } from '@/domain/entities/series.entity.js';
 import type { PresetEntity } from '@/domain/entities/preset.entity.js';
 import type { TitleEntity } from '@/domain/entities/title.entity.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
+import type { AccountBalance } from '@/domain/reports/ledger-rows.js';
 
 export interface IJournalTxRepository {
     find(referenceType: JournalRefType, referenceId: string): Promise<JournalEntryEntity | null>;
@@ -20,6 +21,8 @@ export interface IJournalTxRepository {
     writeAll(entries: readonly JournalEntryEntity[]): Promise<void>;
     /** Data até a qual o período da empresa está fechado (lê com `FOR KEY SHARE`); `null` se aberto. */
     closedThrough(companyId: string): Promise<Date | null>;
+    /** Data do lançamento mais antigo da empresa; `null` se não há nenhum. */
+    earliestDate(companyId: string): Promise<Date | null>;
     /** Trava a linha do lançamento (`FOR UPDATE`) e o devolve; `null` se não é da empresa. */
     lock(companyId: string, id: string): Promise<JournalEntryEntity | null>;
 }
@@ -68,6 +71,32 @@ export interface ISeriesTxRepository {
     lastTitle(seriesId: string): Promise<TitleEntity | null>;
 }
 
+/** Fechamento de período de uma empresa. */
+export interface PeriodClosingRow {
+    id: string;
+    companyId: string;
+    throughDate: Date;
+    closingEntryId: string | null;
+    createdAt: Date;
+}
+
+export interface IPeriodTxRepository {
+    /** Trava a linha da empresa (`FOR UPDATE`) e devolve a trava vigente; `null` se não existe. */
+    lockCompany(companyId: string): Promise<{ closedThrough: Date | null } | null>;
+    /** Fechamento de maior data da empresa. */
+    latest(companyId: string): Promise<PeriodClosingRow | null>;
+    insert(row: PeriodClosingRow): Promise<void>;
+    delete(id: string): Promise<void>;
+    setClosedThrough(companyId: string, date: Date | null): Promise<void>;
+    /** Débitos e créditos das contas de resultado do plano entre as datas, sem lançamentos de apuração. */
+    resultBalances(
+        companyId: string,
+        planId: string,
+        start: Date,
+        end: Date,
+    ): Promise<AccountBalance[]>;
+}
+
 /** Repositórios ligados à mesma transação do banco. */
 export interface ILedgerTx {
     journal: IJournalTxRepository;
@@ -76,6 +105,7 @@ export interface ILedgerTx {
     titles: ITitleTxRepository;
     entries: IEntryTxRepository;
     series: ISeriesTxRepository;
+    periods: IPeriodTxRepository;
 }
 
 export interface ILedgerUnitOfWork {
