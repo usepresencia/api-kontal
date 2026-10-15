@@ -9,6 +9,8 @@ describe('JournalRefType', () => {
             'SETTLEMENT_REVERSAL',
             'MANUAL',
             'MANUAL_REVERSAL',
+            'CLOSING',
+            'CLOSING_REVERSAL',
         ]);
     });
 });

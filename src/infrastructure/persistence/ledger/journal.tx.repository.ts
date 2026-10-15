@@ -3,6 +3,7 @@ import type { JournalEntryEntity } from '@/domain/entities/journal-entry.entity.
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
+import { assertPeriodOpen, LOCK_EXEMPT_TYPES } from '@/domain/ledger/period-lock.policy.js';
 import type { IJournalTxRepository } from '@/domain/repositories/ledger.unit-of-work.interface.js';
 import {
     toJournalData,
@@ -48,8 +49,21 @@ export class JournalTxRepository implements IJournalTxRepository {
         );
     }
 
+    async closedThrough(companyId: string): Promise<Date | null> {
+        const rows = await this.client.$queryRaw<{ closedThrough: Date | null }[]>`
+            SELECT "closedThrough" FROM "Company" WHERE "id" = ${companyId} FOR KEY SHARE`;
+        return rows[0]?.closedThrough ?? null;
+    }
+
     async writeAll(entries: readonly JournalEntryEntity[]): Promise<void> {
         if (entries.length === 0) return;
+        const guarded = entries.filter(entry => !LOCK_EXEMPT_TYPES.includes(entry.referenceType));
+        for (const companyId of new Set(guarded.map(entry => entry.companyId))) {
+            assertPeriodOpen(
+                await this.closedThrough(companyId),
+                guarded.filter(entry => entry.companyId === companyId).map(entry => entry.date),
+            );
+        }
         const data = entries.map(toJournalData);
         try {
             await this.client.journalEntry.createMany({ data: data.map(item => item.entry) });

@@ -115,6 +115,8 @@ enum JournalRefType {
   SETTLEMENT_REVERSAL
   MANUAL
   MANUAL_REVERSAL
+  CLOSING
+  CLOSING_REVERSAL
 }
 
 model User {
@@ -144,14 +146,27 @@ model Company {
   isActive       Boolean         @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
+  closedThrough  DateTime?       @db.Date
   memberships    Membership[]
   address        CompanyAddress?
   billingPlans   BillingPlan[]
   titles         Title[]
   titleSeries    TitleSeries[]
   journalEntries JournalEntry[]
+  periodClosings PeriodClosing[]
 
   @@index([isActive, name])
+}
+
+model PeriodClosing {
+  id             String   @id @default(uuid())
+  companyId      String
+  throughDate    DateTime @db.Date
+  closingEntryId String?
+  createdAt      DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, throughDate])
 }
 
 model CompanyAddress {
