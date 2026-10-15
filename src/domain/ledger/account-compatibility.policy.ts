@@ -80,3 +80,30 @@ export function assertSettlementAccount(
         );
     }
 }
+
+/**
+ * Valida a conta de destino de um título a pagar: analítica, ativa, do plano, de despesa ou ativo
+ * e que não seja a conta de controle do título nem outra conta de controle.
+ * @throws DomainError DESTINATION_ACCOUNT_INVALID
+ */
+export function assertDestinationAccount(
+    planId: string,
+    controlAccountId: string,
+    ref: AccountRef | undefined,
+    controlIds: ReadonlySet<string>,
+): void {
+    const valid =
+        ref !== undefined &&
+        ref.billingPlanId === planId &&
+        ref.accountType === AccountType.ANALYTIC &&
+        ref.isActive &&
+        (ref.nature === AccountNature.EXPENSE || ref.nature === AccountNature.ASSET) &&
+        ref.id !== controlAccountId &&
+        !controlIds.has(ref.id);
+    if (!valid) {
+        throw new DomainError(
+            ErrorCode.DESTINATION_ACCOUNT_INVALID,
+            'A conta de destino deve ser analítica, ativa, do plano do preset, de despesa ou ativo e não pode ser conta de controle',
+        );
+    }
+}

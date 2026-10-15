@@ -54,15 +54,17 @@ function required(accountId: string | null, role: string): string {
 }
 
 /**
- * Escolhe as contas de controle e de resultado do título a partir do preset.
+ * Escolhe as contas de controle e de resultado do título a partir do preset; `resultOverride`
+ * (conta de destino ou de saldos iniciais) substitui a conta de receita ou de despesa.
  * @throws DomainError TITLE_NOT_POSTABLE se o preset não tem as contas do tipo
  */
 export function resolveTitleAccounts(
     type: TitleType,
     preset: Pick<PresetAccountIds, 'receivable' | 'payable' | 'revenue' | 'expense'>,
+    resultOverride?: string,
 ): { controlAccountId: string; resultAccountId: string } {
     const control = type === TitleType.INCOME ? preset.receivable : preset.payable;
-    const result = type === TitleType.INCOME ? preset.revenue : preset.expense;
+    const result = resultOverride ?? (type === TitleType.INCOME ? preset.revenue : preset.expense);
     if (!control || !result) {
         throw new DomainError(
             ErrorCode.TITLE_NOT_POSTABLE,

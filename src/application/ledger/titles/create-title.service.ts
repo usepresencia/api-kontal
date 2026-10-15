@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { resolveDestination } from '@/application/ledger/destination-account.js';
 import { creationJournal } from '@/application/ledger/journal-builder.js';
 import type { IClock } from '@/domain/clock.js';
 import { TitleEntity } from '@/domain/entities/title.entity.js';
@@ -21,6 +22,7 @@ export interface CreateTitleInput {
     issueDate?: Date;
     expirationDate: Date;
     feesPercentageMonthly?: number;
+    destinationAccountId?: string;
 }
 
 @Injectable()
@@ -32,7 +34,8 @@ export class CreateTitleService {
 
     /**
      * Cria o título com as contas do preset e grava o lançamento de criação na mesma transação.
-     * @throws DomainError PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE
+     * @throws DomainError PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE,
+     *   DESTINATION_ACCOUNT_INVALID
      */
     execute(companyId: string, input: CreateTitleInput): Promise<TitleView> {
         return this.uow.run(async tx => {
@@ -41,11 +44,18 @@ export class CreateTitleService {
             if (!preset.isActive) {
                 throw new DomainError(ErrorCode.PRESET_INACTIVE, 'O preset está inativo');
             }
+            const destination = await resolveDestination(
+                tx,
+                companyId,
+                preset,
+                input.type,
+                input.destinationAccountId,
+            );
             const title = TitleEntity.create({
                 id: randomUUID(),
                 companyId,
                 presetId: preset.id,
-                accounts: resolveTitleAccounts(input.type, preset.accounts),
+                accounts: resolveTitleAccounts(input.type, preset.accounts, destination),
                 type: input.type,
                 description: input.description,
                 amount: input.amount,

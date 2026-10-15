@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { resolveDestination } from '@/application/ledger/destination-account.js';
 import { creationJournal } from '@/application/ledger/journal-builder.js';
 import type { IClock } from '@/domain/clock.js';
 import { SeriesEntity } from '@/domain/entities/series.entity.js';
@@ -31,6 +32,7 @@ export interface CreateTitleSeriesInput {
     frequency?: SeriesFrequency;
     count?: number;
     until?: Date;
+    destinationAccountId?: string;
 }
 
 export interface SeriesResult {
@@ -58,7 +60,14 @@ export class CreateTitleSeriesService {
             if (!preset.isActive) {
                 throw new DomainError(ErrorCode.PRESET_INACTIVE, 'O preset está inativo');
             }
-            const accounts = resolveTitleAccounts(input.type, preset.accounts);
+            const destination = await resolveDestination(
+                tx,
+                companyId,
+                preset,
+                input.type,
+                input.destinationAccountId,
+            );
+            const accounts = resolveTitleAccounts(input.type, preset.accounts, destination);
             const today = this.clock.today();
             const issueDate = input.issueDate ?? today;
             const frequency = input.frequency ?? SeriesFrequency.MONTHLY;
