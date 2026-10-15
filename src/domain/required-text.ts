@@ -13,3 +13,15 @@ export function requiredText(value: string | null | undefined, label: string, ma
     }
     return text;
 }
+
+/**
+ * Apara o texto opcional (ausente vira vazio) e exige que não passe do máximo.
+ * @throws DomainError VALIDATION_ERROR
+ */
+export function optionalText(value: string | null | undefined, label: string, max = 255): string {
+    const text = value?.trim() ?? '';
+    if (text.length > max) {
+        throw new DomainError(ErrorCode.VALIDATION_ERROR, `${label} excede ${max} caracteres`);
+    }
+    return text;
+}
