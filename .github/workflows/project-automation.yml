@@ -47,6 +47,8 @@ jobs:
                     else
                       OPTION_ID="1df55b11"
                     fi
+                  elif [[ "${{ github.event.action }}" == "closed" ]]; then
+                    OPTION_ID="6d371139"
                   else
                     OPTION_ID="100fbced"
                   fi
