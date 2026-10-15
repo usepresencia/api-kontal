@@ -1,5 +1,7 @@
 import {
     creationJournal,
+    manualJournal,
+    manualReversalJournal,
     reversalJournal,
     settlementJournal,
 } from '@/application/ledger/journal-builder.js';
@@ -94,5 +96,60 @@ describe('settlementJournal', () => {
             companyId: 'c1',
             totalDebits: 100,
         });
+    });
+});
+
+describe('manualJournal', () => {
+    it('cria o lançamento MANUAL com referência ao próprio id', () => {
+        const entry = manualJournal({
+            companyId: 'c1',
+            date: new Date('2026-10-10T00:00:00.000Z'),
+            description: 'Aporte de capital',
+            lines: [
+                { accountId: 'bank', debit: 1000, credit: 0, memo: '' },
+                { accountId: 'capital', debit: 0, credit: 1000, memo: '' },
+            ],
+        });
+        expect(entry).toMatchObject({
+            companyId: 'c1',
+            referenceType: 'MANUAL',
+            referenceId: entry.id,
+            description: 'Aporte de capital',
+            totalDebits: 1000,
+        });
+    });
+});
+
+describe('manualReversalJournal', () => {
+    const original = journalFixture(
+        'MANUAL',
+        'm1',
+        [
+            { accountId: 'bank', debit: 1000, credit: 0, memo: 'x' },
+            { accountId: 'capital', debit: 0, credit: 1000, memo: 'x' },
+        ],
+        new Date('2026-10-01T00:00:00.000Z'),
+    );
+
+    it('inverte as linhas, aponta para o original e usa a data mais tardia entre hoje e a do original', () => {
+        const today = new Date('2026-10-14T00:00:00.000Z');
+        const reversal = manualReversalJournal({ original, today });
+        expect(reversal).toMatchObject({
+            referenceType: 'MANUAL_REVERSAL',
+            referenceId: original.id,
+            date: today,
+            description: 'Estorno: original',
+        });
+        expect(reversal.lines.map(line => [line.accountId, line.debit, line.credit])).toEqual([
+            ['bank', 0, 1000],
+            ['capital', 1000, 0],
+        ]);
+        const early = manualReversalJournal({
+            original,
+            today: new Date('2026-09-01T00:00:00.000Z'),
+            description: 'Correção',
+        });
+        expect(early.date).toEqual(original.date);
+        expect(early.description).toBe('Correção');
     });
 });

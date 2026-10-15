@@ -62,3 +62,37 @@ export function settlementJournal(params: {
         lines: params.lines,
     });
 }
+
+/** Lançamento manual: referência ao próprio id. */
+export function manualJournal(params: {
+    companyId: string;
+    date: Date;
+    description: string;
+    lines: readonly JournalLine[];
+}): JournalEntryEntity {
+    const id = randomUUID();
+    return JournalEntryEntity.create({
+        id,
+        companyId: params.companyId,
+        date: params.date,
+        description: params.description,
+        referenceType: JournalRefType.MANUAL,
+        referenceId: id,
+        lines: params.lines,
+    });
+}
+
+/** Estorno de lançamento manual: linhas invertidas, na data mais tardia entre hoje e a do original. */
+export function manualReversalJournal(params: {
+    original: JournalEntryEntity;
+    today: Date;
+    description?: string;
+}): JournalEntryEntity {
+    return reversalJournal({
+        original: params.original,
+        referenceType: JournalRefType.MANUAL_REVERSAL,
+        referenceId: params.original.id,
+        eventDate: params.today,
+        description: params.description ?? `Estorno: ${params.original.description}`,
+    });
+}
