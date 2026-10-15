@@ -1,6 +1,8 @@
 import { CreateBillingAccountService } from '@/application/billing/create-billing-account.service.js';
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { DreCategory } from '@/domain/billing/dre-category.js';
 import {
     accountFixture,
     fakeAccounts,
@@ -136,5 +138,52 @@ describe('CreateBillingAccountService', () => {
         await expect(service.execute('c1', { ...input, parentId: 'a0' })).rejects.toMatchObject({
             code: 'ACCOUNT_NATURE_MISMATCH',
         });
+    });
+
+    it('conta nova herda as categorias do pai quando não informa', async () => {
+        accounts.findParent.mockResolvedValue(
+            accountFixture({
+                id: 'a0',
+                nature: AccountNature.EXPENSE,
+                dreCategory: DreCategory.COST_OF_SALES,
+            }),
+        );
+        const { nature: _nature, ...withoutNature } = input;
+        await service.execute('c1', { ...withoutNature, parentId: 'a0' });
+        expect(accounts.insertWithNextCode.mock.calls[0][0]).toMatchObject({
+            dreCategory: 'COST_OF_SALES',
+            balanceCategory: null,
+        });
+    });
+
+    it('categoria informada vence a do pai e null deixa sem categoria', async () => {
+        accounts.findParent.mockResolvedValue(
+            accountFixture({
+                id: 'a0',
+                nature: AccountNature.ASSET,
+                balanceCategory: BalanceCategory.CURRENT_ASSET,
+            }),
+        );
+        const { nature: _nature, ...withoutNature } = input;
+        await service.execute('c1', {
+            ...withoutNature,
+            parentId: 'a0',
+            balanceCategory: BalanceCategory.NON_CURRENT_ASSET,
+        });
+        expect(accounts.insertWithNextCode.mock.calls[0][0].balanceCategory).toBe(
+            'NON_CURRENT_ASSET',
+        );
+        await service.execute('c1', { ...withoutNature, parentId: 'a0', balanceCategory: null });
+        expect(accounts.insertWithNextCode.mock.calls[1][0].balanceCategory).toBeNull();
+    });
+
+    it('categoria incompatível com a natureza é recusada sem gravar', async () => {
+        await expect(
+            service.execute('c1', { ...input, dreCategory: DreCategory.GROSS_REVENUE }),
+        ).rejects.toMatchObject({ code: 'DRE_CATEGORY_INVALID' });
+        await expect(
+            service.execute('c1', { ...input, balanceCategory: BalanceCategory.CURRENT_ASSET }),
+        ).rejects.toMatchObject({ code: 'BALANCE_CATEGORY_INVALID' });
+        expect(accounts.insertWithNextCode).not.toHaveBeenCalled();
     });
 });

@@ -34,6 +34,26 @@ enum AccountNature {
   EXPENSE
 }
 
+enum DreCategory {
+  GROSS_REVENUE
+  FINANCIAL_REVENUE
+  OTHER_REVENUE
+  REVENUE_DEDUCTION
+  COST_OF_SALES
+  OPERATING_EXPENSE
+  FINANCIAL_EXPENSE
+  OTHER_EXPENSE
+  INCOME_TAX
+}
+
+enum BalanceCategory {
+  CURRENT_ASSET
+  NON_CURRENT_ASSET
+  CURRENT_LIABILITY
+  NON_CURRENT_LIABILITY
+  EQUITY
+}
+
 enum PresetRole {
   receivable
   payable
@@ -180,6 +200,8 @@ model BillingAccount {
   name            String
   accountType     AccountType
   nature          AccountNature
+  dreCategory     DreCategory?
+  balanceCategory BalanceCategory?
   isActive        Boolean          @default(true)
   code            String
   sortKey         String

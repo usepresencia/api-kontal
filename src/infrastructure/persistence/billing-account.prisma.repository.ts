@@ -85,6 +85,8 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
                 name: account.name,
                 isActive: account.isActive,
                 accountType: account.accountType,
+                dreCategory: account.dreCategory,
+                balanceCategory: account.balanceCategory,
             },
         });
     }

@@ -2,7 +2,10 @@ import { DeleteBillingAccountService } from '@/application/billing/delete-billin
 import { GetBillingAccountService } from '@/application/billing/get-billing-account.service.js';
 import { ListBillingAccountsService } from '@/application/billing/list-billing-accounts.service.js';
 import { UpdateBillingAccountService } from '@/application/billing/update-billing-account.service.js';
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { DreCategory } from '@/domain/billing/dre-category.js';
 import { accountFixture, fakeAccounts, viewFixture } from '@test/support/billing-fakes.js';
 
 const accounts = fakeAccounts();
@@ -22,6 +25,26 @@ describe('UpdateBillingAccountService', () => {
         expect(view.billingPlanName).toBe('Plano X');
         expect(accounts.hasChildren).not.toHaveBeenCalled();
         expect(accounts.update).toHaveBeenCalledWith('c1', view.account);
+    });
+
+    it('altera as categorias sem consultar o uso da conta', async () => {
+        accounts.findById.mockResolvedValue(
+            viewFixture(accountFixture({ nature: AccountNature.EXPENSE })),
+        );
+        const view = await service.execute('c1', 'a1', {
+            dreCategory: DreCategory.FINANCIAL_EXPENSE,
+        });
+        expect(view.account.dreCategory).toBe('FINANCIAL_EXPENSE');
+        expect(accounts.update).toHaveBeenCalledWith('c1', view.account);
+        expect(accounts.isInUse).not.toHaveBeenCalled();
+    });
+
+    it('categoria incompatível com a natureza é recusada sem gravar', async () => {
+        accounts.findById.mockResolvedValue(viewFixture());
+        await expect(
+            service.execute('c1', 'a1', { balanceCategory: BalanceCategory.CURRENT_LIABILITY }),
+        ).rejects.toMatchObject({ code: 'BALANCE_CATEGORY_INVALID' });
+        expect(accounts.update).not.toHaveBeenCalled();
     });
 
     it('virar sintética não consulta filhas', async () => {

@@ -1,6 +1,8 @@
 import { z } from 'zod';
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { DreCategory } from '@/domain/billing/dre-category.js';
 import { pageQuerySchema } from '@/presentation/common/page-query.schema.js';
 
 const name = z.string().trim().min(1).max(255);
@@ -19,17 +21,21 @@ export const createBillingAccountSchema = z.object({
     name,
     accountType: z.enum(AccountType),
     nature: z.enum(AccountNature).optional(),
+    dreCategory: z.enum(DreCategory).nullish(),
+    balanceCategory: z.enum(BalanceCategory).nullish(),
     isActive: z.boolean().optional(),
 });
 
 export type CreateBillingAccountBody = z.infer<typeof createBillingAccountSchema>;
 
-/** Só nome, status e tipo mudam; ao menos um campo é obrigatório. */
+/** Só nome, status, tipo e categorias mudam; ao menos um campo é obrigatório. */
 export const updateBillingAccountSchema = z
     .object({
         name: name.optional(),
         isActive: z.boolean().optional(),
         accountType: z.enum(AccountType).optional(),
+        dreCategory: z.enum(DreCategory).nullable().optional(),
+        balanceCategory: z.enum(BalanceCategory).nullable().optional(),
     })
     .refine(body => Object.keys(body).length > 0, {
         message: 'Informe ao menos um campo para alterar',

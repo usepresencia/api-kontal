@@ -6,6 +6,8 @@ import { assertValidPlacement } from '@/domain/billing/account-hierarchy.policy.
 import type { AccountNature } from '@/domain/billing/account-nature.js';
 import { resolveNature } from '@/domain/billing/nature-resolution.js';
 import type { AccountType } from '@/domain/billing/account-type.js';
+import { type BalanceCategory, balanceCategoryRules } from '@/domain/billing/balance-category.js';
+import { type DreCategory, dreCategoryRules } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
@@ -25,6 +27,8 @@ export interface CreateBillingAccountInput {
     name: string;
     accountType: AccountType;
     nature?: AccountNature;
+    dreCategory?: DreCategory | null;
+    balanceCategory?: BalanceCategory | null;
     isActive?: boolean;
 }
 
@@ -49,6 +53,16 @@ export class CreateBillingAccountService {
             : null;
         const level = assertValidPlacement(input.accountType, parent);
         const nature = resolveNature(parent?.nature ?? null, input.nature);
+        const dreCategory = dreCategoryRules.resolve(
+            nature,
+            parent?.dreCategory ?? null,
+            input.dreCategory,
+        );
+        const balanceCategory = balanceCategoryRules.resolve(
+            nature,
+            parent?.balanceCategory ?? null,
+            input.balanceCategory,
+        );
         const draft = BillingAccountEntity.draft({
             id: randomUUID(),
             billingPlanId: input.billingPlanId,
@@ -56,6 +70,8 @@ export class CreateBillingAccountService {
             name: input.name,
             accountType: input.accountType,
             nature,
+            dreCategory,
+            balanceCategory,
             isActive: input.isActive,
             level,
         });

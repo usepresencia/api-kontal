@@ -23,6 +23,8 @@ export function toAccountResponse({
         level: account.level,
         accountType: account.accountType,
         nature: account.nature,
+        dreCategory: account.dreCategory,
+        balanceCategory: account.balanceCategory,
         isActive: account.isActive,
         billingPlanId: account.billingPlanId,
         billingPlanName,

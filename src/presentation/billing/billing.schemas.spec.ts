@@ -46,6 +46,16 @@ describe('createBillingAccountSchema', () => {
         expect(createBillingAccountSchema.parse(valid).nature).toBeUndefined();
     });
 
+    it('aceita as categorias, null e a omissão delas', () => {
+        const parsed = createBillingAccountSchema.parse({
+            ...valid,
+            dreCategory: 'COST_OF_SALES',
+            balanceCategory: null,
+        });
+        expect(parsed).toMatchObject({ dreCategory: 'COST_OF_SALES', balanceCategory: null });
+        expect(createBillingAccountSchema.parse(valid).dreCategory).toBeUndefined();
+    });
+
     it.each([
         ['plano que não é UUID', { billingPlanId: 'p1' }],
         ['pai que não é UUID', { parentId: 'abc' }],
@@ -54,6 +64,8 @@ describe('createBillingAccountSchema', () => {
         ['nome vazio', { name: '' }],
         ['isActive que não é booleano', { isActive: 'sim' }],
         ['natureza desconhecida', { nature: 'OUTRA' }],
+        ['categoria de DRE desconhecida', { dreCategory: 'OUTRA' }],
+        ['categoria de balanço desconhecida', { balanceCategory: 'OUTRA' }],
     ])('rejeita %s', (_label, overrides) => {
         expect(createBillingAccountSchema.safeParse({ ...valid, ...overrides }).success).toBe(
             false,
@@ -67,6 +79,16 @@ describe('updateBillingAccountSchema', () => {
         expect(updateBillingAccountSchema.safeParse({ isActive: false }).success).toBe(true);
         expect(updateBillingAccountSchema.safeParse({ accountType: 'ANALYTIC' }).success).toBe(
             true,
+        );
+    });
+
+    it('aceita só uma categoria, inclusive null para limpar', () => {
+        expect(updateBillingAccountSchema.safeParse({ dreCategory: 'INCOME_TAX' }).success).toBe(
+            true,
+        );
+        expect(updateBillingAccountSchema.safeParse({ balanceCategory: null }).success).toBe(true);
+        expect(updateBillingAccountSchema.safeParse({ balanceCategory: 'OUTRA' }).success).toBe(
+            false,
         );
     });
 
