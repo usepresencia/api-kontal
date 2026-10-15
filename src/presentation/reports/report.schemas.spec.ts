@@ -1,4 +1,5 @@
 import {
+    accountLedgerQuerySchema,
     balanceSheetQuerySchema,
     dailyJournalQuerySchema,
     dreQuerySchema,
@@ -71,5 +72,25 @@ describe('dailyJournalQuerySchema', () => {
         expect(dailyJournalQuerySchema.parse({ ...base, pageSize: '31' }).pageSize).toBe(31);
         expect(dailyJournalQuerySchema.safeParse({ ...base, pageSize: '32' }).success).toBe(false);
         expect(dailyJournalQuerySchema.safeParse({ ...base, page: '0' }).success).toBe(false);
+    });
+});
+
+describe('accountLedgerQuerySchema', () => {
+    const base = {
+        accountId: '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f',
+        start: '2026-10-01',
+        end: '2026-10-31',
+    };
+
+    it('exige conta e período; agrupamento por dia e paginação opcionais', () => {
+        expect(accountLedgerQuerySchema.parse(base)).toMatchObject({ page: 1, pageSize: 10 });
+        expect(accountLedgerQuerySchema.parse({ ...base, groupBy: 'day' }).groupBy).toBe('day');
+        expect(accountLedgerQuerySchema.safeParse({ ...base, accountId: 'x' }).success).toBe(false);
+        expect(accountLedgerQuerySchema.safeParse({ ...base, groupBy: 'month' }).success).toBe(
+            false,
+        );
+        expect(
+            accountLedgerQuerySchema.safeParse({ start: base.start, end: base.end }).success,
+        ).toBe(false);
     });
 });

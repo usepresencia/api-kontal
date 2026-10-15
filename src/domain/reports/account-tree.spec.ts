@@ -1,5 +1,10 @@
 import { AccountNature } from '@/domain/billing/account-nature.js';
-import { buildAccountTree, CENTS_OPS, flattenTree } from '@/domain/reports/account-tree.js';
+import {
+    buildAccountTree,
+    CENTS_OPS,
+    descendantIds,
+    flattenTree,
+} from '@/domain/reports/account-tree.js';
 import { reportAccount, synthetic } from '@test/support/report-fakes.js';
 
 const { ASSET } = AccountNature;
@@ -85,5 +90,12 @@ describe('flattenTree', () => {
             '2',
             '2.1',
         ]);
+    });
+});
+
+describe('descendantIds', () => {
+    it('devolve a conta e todas as descendentes; analítica devolve só ela', () => {
+        expect(descendantIds(accounts, 'a1').sort()).toEqual(['a1', 'a11', 'a12', 'a121', 'a13']);
+        expect(descendantIds(accounts, 'a11')).toEqual(['a11']);
     });
 });

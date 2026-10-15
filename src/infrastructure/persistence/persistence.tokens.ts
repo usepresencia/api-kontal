@@ -14,3 +14,4 @@ export const REPORT_ACCOUNT_REPOSITORY = Symbol('IReportAccountRepository');
 export const LEDGER_TOTALS_REPOSITORY = Symbol('ILedgerTotalsRepository');
 export const JOURNAL_READ_REPOSITORY = Symbol('IJournalReadRepository');
 export const DAILY_JOURNAL_REPOSITORY = Symbol('IDailyJournalRepository');
+export const ACCOUNT_LEDGER_REPOSITORY = Symbol('IAccountLedgerRepository');

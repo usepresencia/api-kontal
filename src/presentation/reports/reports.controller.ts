@@ -1,8 +1,10 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { GetAccountLedgerService } from '@/application/reports/get-account-ledger.service.js';
 import { GetBalanceSheetService } from '@/application/reports/get-balance-sheet.service.js';
 import { GetDailyJournalService } from '@/application/reports/get-daily-journal.service.js';
 import { GetDreService } from '@/application/reports/get-dre.service.js';
 import { GetTrialBalanceService } from '@/application/reports/get-trial-balance.service.js';
+import { toAccountLedgerResponse } from '@/presentation/reports/account-ledger.mapper.js';
 import { toDailyJournalResponse } from '@/presentation/reports/daily-journal.mapper.js';
 import { toBalanceSheetResponse } from '@/presentation/reports/balance-sheet.mapper.js';
 import { TenantId } from '@/infrastructure/auth/tenant-id.decorator.js';
@@ -10,6 +12,8 @@ import { TenantIsolationGuard } from '@/infrastructure/auth/tenant-isolation.gua
 import { ZodValidationPipe } from '@/presentation/pipes/zod-validation.pipe.js';
 import { toDreResponse } from '@/presentation/reports/dre.mapper.js';
 import {
+    type AccountLedgerQuery,
+    accountLedgerQuerySchema,
     type BalanceSheetQuery,
     balanceSheetQuerySchema,
     type DailyJournalQuery,
@@ -29,6 +33,7 @@ export class ReportsController {
         private readonly getTrialBalance: GetTrialBalanceService,
         private readonly getBalanceSheet: GetBalanceSheetService,
         private readonly getDailyJournal: GetDailyJournalService,
+        private readonly getAccountLedger: GetAccountLedgerService,
     ) {}
 
     @Get('dre')
@@ -61,5 +66,13 @@ export class ReportsController {
         @Query(new ZodValidationPipe(dailyJournalQuerySchema)) query: DailyJournalQuery,
     ) {
         return toDailyJournalResponse(await this.getDailyJournal.execute(companyId, query));
+    }
+
+    @Get('account-ledger')
+    async accountLedger(
+        @TenantId() companyId: string,
+        @Query(new ZodValidationPipe(accountLedgerQuerySchema)) query: AccountLedgerQuery,
+    ) {
+        return toAccountLedgerResponse(await this.getAccountLedger.execute(companyId, query));
     }
 }

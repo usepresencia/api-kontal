@@ -1,4 +1,4 @@
-import { toCents, toDecimal } from '@/infrastructure/persistence/money.mapper.js';
+import { signedCents, toCents, toDecimal } from '@/infrastructure/persistence/money.mapper.js';
 
 describe('money.mapper', () => {
     it('toCents converte o Decimal do banco em centavos inteiros', () => {
@@ -16,5 +16,16 @@ describe('money.mapper', () => {
     it('toDecimal devolve o Decimal com 2 casas exatas', () => {
         expect(toDecimal(123450).toFixed(2)).toBe('1234.50');
         expect(toDecimal(5).toFixed(2)).toBe('0.05');
+    });
+});
+
+describe('signedCents', () => {
+    it.each([
+        ['12.50', 1250],
+        ['-12.50', -1250],
+        ['0', 0],
+        ['-0.05', -5],
+    ])('%s → %i', (text, cents) => {
+        expect(signedCents(text)).toBe(cents);
     });
 });
