@@ -1,4 +1,4 @@
-import { dreQuerySchema } from '@/presentation/reports/report.schemas.js';
+import { dreQuerySchema, trialBalanceQuerySchema } from '@/presentation/reports/report.schemas.js';
 
 const uuid = '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f';
 
@@ -31,5 +31,16 @@ describe('dreQuerySchema', () => {
         ['agrupamento desconhecido', { start: '2026-10-01', end: '2026-10-31', groupBy: 'year' }],
     ])('rejeita %s', (_label, query) => {
         expect(dreQuerySchema.safeParse(query).success).toBe(false);
+    });
+});
+
+describe('trialBalanceQuerySchema', () => {
+    it('aceita maxLevel de 1 a 5 convertido em número e o deixa opcional', () => {
+        const base = { start: '2026-10-01', end: '2026-10-31' };
+        expect(trialBalanceQuerySchema.parse({ ...base, maxLevel: '2' }).maxLevel).toBe(2);
+        expect(trialBalanceQuerySchema.parse(base).maxLevel).toBeUndefined();
+        for (const maxLevel of ['0', '6', '1.5', 'x']) {
+            expect(trialBalanceQuerySchema.safeParse({ ...base, maxLevel }).success).toBe(false);
+        }
     });
 });
