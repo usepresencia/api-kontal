@@ -1,4 +1,6 @@
 import {
+    closingJournal,
+    closingReversalJournal,
     creationJournal,
     manualJournal,
     manualReversalJournal,
@@ -151,5 +153,47 @@ describe('manualReversalJournal', () => {
         });
         expect(early.date).toEqual(original.date);
         expect(early.description).toBe('Correção');
+    });
+});
+
+describe('closingJournal e closingReversalJournal', () => {
+    const lines = [
+        { accountId: 'rev', debit: 100000, credit: 0, memo: 'Apuração' },
+        { accountId: 'exp', debit: 0, credit: 40000, memo: 'Apuração' },
+        { accountId: 'ret', debit: 0, credit: 60000, memo: 'Apuração' },
+    ];
+
+    it('closingJournal cria o lançamento CLOSING referenciando o fechamento, na data informada', () => {
+        const entry = closingJournal({
+            companyId: 'c1',
+            closingId: 'cl1',
+            date: new Date('2026-12-31T00:00:00.000Z'),
+            lines,
+        });
+        expect(entry).toMatchObject({
+            companyId: 'c1',
+            referenceType: 'CLOSING',
+            referenceId: 'cl1',
+            description: 'Apuração do resultado do exercício',
+            totalDebits: 100000,
+        });
+        expect(entry.date).toEqual(new Date('2026-12-31T00:00:00.000Z'));
+    });
+
+    it('closingReversalJournal inverte as linhas na mesma data, com o mesmo fechamento como referência', () => {
+        const original = closingJournal({
+            companyId: 'c1',
+            closingId: 'cl1',
+            date: new Date('2026-12-31T00:00:00.000Z'),
+            lines,
+        });
+        const reversal = closingReversalJournal(original);
+        expect(reversal).toMatchObject({ referenceType: 'CLOSING_REVERSAL', referenceId: 'cl1' });
+        expect(reversal.date).toEqual(original.date);
+        expect(reversal.lines.map(line => [line.accountId, line.debit, line.credit])).toEqual([
+            ['rev', 0, 100000],
+            ['exp', 40000, 0],
+            ['ret', 60000, 0],
+        ]);
     });
 });

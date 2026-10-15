@@ -96,3 +96,32 @@ export function manualReversalJournal(params: {
         description: params.description ?? `Estorno: ${params.original.description}`,
     });
 }
+
+/** Lançamento de apuração do exercício, referenciando o fechamento. */
+export function closingJournal(params: {
+    companyId: string;
+    closingId: string;
+    date: Date;
+    lines: readonly JournalLine[];
+}): JournalEntryEntity {
+    return JournalEntryEntity.create({
+        id: randomUUID(),
+        companyId: params.companyId,
+        date: params.date,
+        description: 'Apuração do resultado do exercício',
+        referenceType: JournalRefType.CLOSING,
+        referenceId: params.closingId,
+        lines: params.lines,
+    });
+}
+
+/** Estorno da apuração: linhas invertidas na mesma data, com o mesmo fechamento como referência. */
+export function closingReversalJournal(original: JournalEntryEntity): JournalEntryEntity {
+    return reversalJournal({
+        original,
+        referenceType: JournalRefType.CLOSING_REVERSAL,
+        referenceId: original.referenceId,
+        eventDate: original.date,
+        description: 'Estorno da apuração do resultado do exercício',
+    });
+}
