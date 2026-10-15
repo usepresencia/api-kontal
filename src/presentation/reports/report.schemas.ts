@@ -13,3 +13,9 @@ export const dreQuerySchema = periodQuerySchema.extend({
 });
 
 export type DreQuery = z.infer<typeof dreQuerySchema>;
+
+export const trialBalanceQuerySchema = periodQuerySchema.extend({
+    maxLevel: z.coerce.number().int().min(1).max(5).optional(),
+});
+
+export type TrialBalanceQuery = z.infer<typeof trialBalanceQuerySchema>;
