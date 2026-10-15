@@ -19,3 +19,10 @@ export const trialBalanceQuerySchema = periodQuerySchema.extend({
 });
 
 export type TrialBalanceQuery = z.infer<typeof trialBalanceQuerySchema>;
+
+export const balanceSheetQuerySchema = z.object({
+    date: isoDateSchema,
+    billingPlanId: z.uuid().optional(),
+});
+
+export type BalanceSheetQuery = z.infer<typeof balanceSheetQuerySchema>;

@@ -1,4 +1,8 @@
-import { dreQuerySchema, trialBalanceQuerySchema } from '@/presentation/reports/report.schemas.js';
+import {
+    balanceSheetQuerySchema,
+    dreQuerySchema,
+    trialBalanceQuerySchema,
+} from '@/presentation/reports/report.schemas.js';
 
 const uuid = '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f';
 
@@ -42,5 +46,18 @@ describe('trialBalanceQuerySchema', () => {
         for (const maxLevel of ['0', '6', '1.5', 'x']) {
             expect(trialBalanceQuerySchema.safeParse({ ...base, maxLevel }).success).toBe(false);
         }
+    });
+});
+
+describe('balanceSheetQuerySchema', () => {
+    it('exige a data e aceita plano opcional', () => {
+        expect(balanceSheetQuerySchema.parse({ date: '2026-10-31' })).toEqual({
+            date: new Date('2026-10-31T00:00:00.000Z'),
+        });
+        expect(balanceSheetQuerySchema.safeParse({}).success).toBe(false);
+        expect(balanceSheetQuerySchema.safeParse({ date: '31/10/2026' }).success).toBe(false);
+        expect(
+            balanceSheetQuerySchema.safeParse({ date: '2026-10-31', billingPlanId: 'x' }).success,
+        ).toBe(false);
     });
 });
