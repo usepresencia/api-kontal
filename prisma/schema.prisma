@@ -54,6 +54,12 @@ enum BalanceCategory {
   EQUITY
 }
 
+enum CostBehavior {
+  VARIABLE
+  FIXED
+  DEPRECIATION
+}
+
 enum PresetRole {
   receivable
   payable
@@ -204,6 +210,7 @@ model BillingAccount {
   nature          AccountNature
   dreCategory     DreCategory?
   balanceCategory BalanceCategory?
+  costBehavior    CostBehavior?
   isActive        Boolean          @default(true)
   code            String
   sortKey         String

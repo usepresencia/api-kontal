@@ -25,6 +25,7 @@ export function toAccountResponse({
         nature: account.nature,
         dreCategory: account.dreCategory,
         balanceCategory: account.balanceCategory,
+        costBehavior: account.costBehavior,
         isActive: account.isActive,
         billingPlanId: account.billingPlanId,
         billingPlanName,

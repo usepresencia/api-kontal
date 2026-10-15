@@ -21,6 +21,7 @@ export class ReportAccountPrismaRepository implements IReportAccountRepository {
                 accountType: true,
                 dreCategory: true,
                 balanceCategory: true,
+                costBehavior: true,
             },
         });
     }

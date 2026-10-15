@@ -1,5 +1,6 @@
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { CostBehavior } from '@/domain/billing/cost-behavior.js';
 import { BalanceCategory } from '@/domain/billing/balance-category.js';
 import { DreCategory } from '@/domain/billing/dre-category.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
@@ -14,6 +15,7 @@ const draftParams = {
     nature: AccountNature.ASSET,
     dreCategory: null,
     balanceCategory: null,
+    costBehavior: null,
     level: 1,
 };
 
@@ -28,6 +30,7 @@ describe('BillingAccountEntity.draft', () => {
             nature: 'ASSET',
             dreCategory: null,
             balanceCategory: null,
+            costBehavior: null,
         });
     });
 
@@ -54,6 +57,7 @@ describe('BillingAccountEntity', () => {
         nature: AccountNature.LIABILITY,
         dreCategory: null,
         balanceCategory: null,
+        costBehavior: null,
         isActive: true,
         code: '1.1',
         level: 2,
@@ -102,5 +106,30 @@ describe('BillingAccountEntity', () => {
         expect(() =>
             account.withChanges({ balanceCategory: BalanceCategory.CURRENT_ASSET }),
         ).toThrow(expect.objectContaining({ code: 'BALANCE_CATEGORY_INVALID' }));
+    });
+
+    it('withChanges troca ou limpa o comportamento de custo em despesa e recusa em outras naturezas', () => {
+        const expense = BillingAccountEntity.fromPersistence({
+            id: 'e1',
+            billingPlanId: 'p1',
+            parentId: 'a0',
+            name: 'Aluguel',
+            accountType: AccountType.ANALYTIC,
+            nature: AccountNature.EXPENSE,
+            dreCategory: null,
+            balanceCategory: null,
+            costBehavior: null,
+            isActive: true,
+            code: '4.1',
+            level: 2,
+            createdAt: new Date('2026-01-01'),
+        });
+        const fixed = expense.withChanges({ costBehavior: CostBehavior.FIXED });
+        expect(fixed.costBehavior).toBe('FIXED');
+        expect(fixed.withChanges({ costBehavior: null }).costBehavior).toBeNull();
+        expect(fixed.withChanges({}).costBehavior).toBe('FIXED');
+        expect(() => account.withChanges({ costBehavior: CostBehavior.VARIABLE })).toThrow(
+            expect.objectContaining({ code: 'COST_BEHAVIOR_INVALID' }),
+        );
     });
 });

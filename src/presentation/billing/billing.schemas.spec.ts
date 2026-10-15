@@ -46,6 +46,16 @@ describe('createBillingAccountSchema', () => {
         expect(createBillingAccountSchema.parse(valid).nature).toBeUndefined();
     });
 
+    it('aceita o comportamento de custo, null e a omissão dele', () => {
+        expect(
+            createBillingAccountSchema.parse({ ...valid, costBehavior: 'FIXED' }).costBehavior,
+        ).toBe('FIXED');
+        expect(
+            createBillingAccountSchema.parse({ ...valid, costBehavior: null }).costBehavior,
+        ).toBeNull();
+        expect(createBillingAccountSchema.parse(valid).costBehavior).toBeUndefined();
+    });
+
     it('aceita as categorias, null e a omissão delas', () => {
         const parsed = createBillingAccountSchema.parse({
             ...valid,
@@ -66,6 +76,7 @@ describe('createBillingAccountSchema', () => {
         ['natureza desconhecida', { nature: 'OUTRA' }],
         ['categoria de DRE desconhecida', { dreCategory: 'OUTRA' }],
         ['categoria de balanço desconhecida', { balanceCategory: 'OUTRA' }],
+        ['comportamento de custo desconhecido', { costBehavior: 'OUTRO' }],
     ])('rejeita %s', (_label, overrides) => {
         expect(createBillingAccountSchema.safeParse({ ...valid, ...overrides }).success).toBe(
             false,
@@ -90,6 +101,14 @@ describe('updateBillingAccountSchema', () => {
         expect(updateBillingAccountSchema.safeParse({ balanceCategory: 'OUTRA' }).success).toBe(
             false,
         );
+    });
+
+    it('aceita só o comportamento de custo, inclusive null para limpar', () => {
+        expect(updateBillingAccountSchema.safeParse({ costBehavior: 'VARIABLE' }).success).toBe(
+            true,
+        );
+        expect(updateBillingAccountSchema.safeParse({ costBehavior: null }).success).toBe(true);
+        expect(updateBillingAccountSchema.safeParse({ costBehavior: 'OUTRO' }).success).toBe(false);
     });
 
     it('rejeita corpo vazio e valores inválidos', () => {

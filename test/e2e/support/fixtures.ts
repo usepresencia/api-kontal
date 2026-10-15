@@ -94,6 +94,7 @@ export function createAccountFixture(
             | 'CURRENT_LIABILITY'
             | 'NON_CURRENT_LIABILITY'
             | 'EQUITY';
+        costBehavior?: 'VARIABLE' | 'FIXED' | 'DEPRECIATION';
     },
 ) {
     return db.billingAccount.create({
@@ -106,6 +107,7 @@ export function createAccountFixture(
             nature: params.nature ?? 'ASSET',
             dreCategory: params.dreCategory ?? null,
             balanceCategory: params.balanceCategory ?? null,
+            costBehavior: params.costBehavior ?? null,
             code: params.code,
             sortKey: toSortKey(params.code),
             level: params.level,

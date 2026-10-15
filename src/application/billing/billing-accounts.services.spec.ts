@@ -5,6 +5,7 @@ import { UpdateBillingAccountService } from '@/application/billing/update-billin
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BalanceCategory } from '@/domain/billing/balance-category.js';
+import { CostBehavior } from '@/domain/billing/cost-behavior.js';
 import { DreCategory } from '@/domain/billing/dre-category.js';
 import { accountFixture, fakeAccounts, viewFixture } from '@test/support/billing-fakes.js';
 
@@ -37,6 +38,19 @@ describe('UpdateBillingAccountService', () => {
         expect(view.account.dreCategory).toBe('FINANCIAL_EXPENSE');
         expect(accounts.update).toHaveBeenCalledWith('c1', view.account);
         expect(accounts.isInUse).not.toHaveBeenCalled();
+    });
+
+    it('altera o comportamento de custo sem consultar o uso e recusa em outra natureza', async () => {
+        accounts.findById.mockResolvedValue(
+            viewFixture(accountFixture({ nature: AccountNature.EXPENSE })),
+        );
+        const view = await service.execute('c1', 'a1', { costBehavior: CostBehavior.DEPRECIATION });
+        expect(view.account.costBehavior).toBe('DEPRECIATION');
+        expect(accounts.isInUse).not.toHaveBeenCalled();
+        accounts.findById.mockResolvedValue(viewFixture());
+        await expect(
+            service.execute('c1', 'a1', { costBehavior: CostBehavior.FIXED }),
+        ).rejects.toMatchObject({ code: 'COST_BEHAVIOR_INVALID' });
     });
 
     it('categoria incompatível com a natureza é recusada sem gravar', async () => {
