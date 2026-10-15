@@ -23,6 +23,9 @@ export const createTitleSchema = z.object({
     expirationDate: isoDateSchema,
     feesPercentageMonthly: feesSchema.optional(),
     destinationAccountId: z.uuid().optional(),
+    isOpening: z.boolean().optional(),
+    openingDate: isoDateSchema.optional(),
+    settledAmount: moneySchema.optional(),
 });
 
 export type CreateTitleBody = z.infer<typeof createTitleSchema>;

@@ -4,12 +4,12 @@ import type { TitleEntity } from '@/domain/entities/title.entity.js';
 import { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
 import { creationLines, reversalDate, reverseLines } from '@/domain/ledger/posting.policy.js';
 
-/** Lançamento de criação do título, na data de emissão. */
+/** Lançamento de criação do título, na data de emissão (ou de implantação), pelo saldo em aberto. */
 export function creationJournal(title: TitleEntity): JournalEntryEntity {
     return JournalEntryEntity.create({
         id: randomUUID(),
         companyId: title.companyId,
-        date: title.issueDate,
+        date: title.openingDate ?? title.issueDate,
         description: `Título: ${title.description} - criação`,
         referenceType: JournalRefType.TITLE_CREATION,
         referenceId: title.id,
@@ -19,7 +19,7 @@ export function creationJournal(title: TitleEntity): JournalEntryEntity {
                 controlAccountId: title.controlAccountId,
                 resultAccountId: title.resultAccountId,
             },
-            title.amount,
+            title.remainingAmount,
             title.description,
         ),
     });
