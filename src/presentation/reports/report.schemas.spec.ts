@@ -1,5 +1,6 @@
 import {
     balanceSheetQuerySchema,
+    dailyJournalQuerySchema,
     dreQuerySchema,
     trialBalanceQuerySchema,
 } from '@/presentation/reports/report.schemas.js';
@@ -59,5 +60,16 @@ describe('balanceSheetQuerySchema', () => {
         expect(
             balanceSheetQuerySchema.safeParse({ date: '2026-10-31', billingPlanId: 'x' }).success,
         ).toBe(false);
+    });
+});
+
+describe('dailyJournalQuerySchema', () => {
+    const base = { start: '2026-10-01', end: '2026-10-31' };
+
+    it('pagina dias: pageSize padrão 7, de 1 a 31', () => {
+        expect(dailyJournalQuerySchema.parse(base)).toMatchObject({ page: 1, pageSize: 7 });
+        expect(dailyJournalQuerySchema.parse({ ...base, pageSize: '31' }).pageSize).toBe(31);
+        expect(dailyJournalQuerySchema.safeParse({ ...base, pageSize: '32' }).success).toBe(false);
+        expect(dailyJournalQuerySchema.safeParse({ ...base, page: '0' }).success).toBe(false);
     });
 });
