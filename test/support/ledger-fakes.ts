@@ -6,6 +6,10 @@ import { JournalEntryEntity, type JournalLine } from '@/domain/entities/journal-
 import { PresetEntity } from '@/domain/entities/preset.entity.js';
 import { TitleEntity, type TitleRow } from '@/domain/entities/title.entity.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
+import type {
+    IJournalReadRepository,
+    JournalView,
+} from '@/domain/repositories/journal-read.repository.interface.js';
 import type { IEntryReadRepository } from '@/domain/repositories/entry-read.repository.interface.js';
 import type {
     ILedgerTx,
@@ -162,4 +166,27 @@ export function journalFixture(
         referenceId,
         lines,
     });
+}
+
+export function fakeJournalRead() {
+    return { find: vi.fn(), list: vi.fn() } satisfies IJournalReadRepository;
+}
+
+/** Visão de leitura do lançamento: código e nome das contas = id da conta. */
+export function journalViewFixture(
+    entry: JournalEntryEntity,
+    overrides: Partial<Omit<JournalView, 'entry'>> = {},
+): JournalView {
+    return {
+        entry,
+        number: 1,
+        accounts: Object.fromEntries(
+            entry.lines.map(line => [
+                line.accountId,
+                { code: line.accountId, name: line.accountId },
+            ]),
+        ),
+        reversedBy: null,
+        ...overrides,
+    };
 }
