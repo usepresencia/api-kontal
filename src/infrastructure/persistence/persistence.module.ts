@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { PeriodClosingReadPrismaRepository } from '@/infrastructure/persistence/period-closing-read.prisma.repository.js';
 import { CashFlowPrismaRepository } from '@/infrastructure/persistence/cash-flow.prisma.repository.js';
 import { AccountLedgerPrismaRepository } from '@/infrastructure/persistence/account-ledger.prisma.repository.js';
 import { DailyJournalPrismaRepository } from '@/infrastructure/persistence/daily-journal.prisma.repository.js';
@@ -31,6 +32,7 @@ import {
     DAILY_JOURNAL_REPOSITORY,
     ACCOUNT_LEDGER_REPOSITORY,
     CASH_FLOW_REPOSITORY,
+    PERIOD_CLOSING_READ_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
 import { SeriesReadPrismaRepository } from '@/infrastructure/persistence/series-read.prisma.repository.js';
@@ -59,6 +61,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: DAILY_JOURNAL_REPOSITORY, useClass: DailyJournalPrismaRepository },
         { provide: ACCOUNT_LEDGER_REPOSITORY, useClass: AccountLedgerPrismaRepository },
         { provide: CASH_FLOW_REPOSITORY, useClass: CashFlowPrismaRepository },
+        { provide: PERIOD_CLOSING_READ_REPOSITORY, useClass: PeriodClosingReadPrismaRepository },
     ],
     exports: [
         USER_REPOSITORY,
@@ -79,6 +82,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         DAILY_JOURNAL_REPOSITORY,
         ACCOUNT_LEDGER_REPOSITORY,
         CASH_FLOW_REPOSITORY,
+        PERIOD_CLOSING_READ_REPOSITORY,
     ],
 })
 export class PersistenceModule {}

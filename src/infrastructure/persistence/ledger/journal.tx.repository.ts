@@ -55,6 +55,12 @@ export class JournalTxRepository implements IJournalTxRepository {
         return rows[0]?.closedThrough ?? null;
     }
 
+    async earliestDate(companyId: string): Promise<Date | null> {
+        const rows = await this.client.$queryRaw<{ date: Date | null }[]>`
+            SELECT MIN("date") AS "date" FROM "JournalEntry" WHERE "companyId" = ${companyId}`;
+        return rows[0]?.date ?? null;
+    }
+
     async writeAll(entries: readonly JournalEntryEntity[]): Promise<void> {
         if (entries.length === 0) return;
         const guarded = entries.filter(entry => !LOCK_EXEMPT_TYPES.includes(entry.referenceType));
