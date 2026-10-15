@@ -21,6 +21,22 @@ interfaces de repositório; TypeScript puro), `application` (services),
 - **Imports:** alias `@/` mantendo o sufixo `.js`
   (`import { x } from '@/utils/x.js'`).
 
+## Recursos
+
+- **Empresas** (plataforma, sem `X-Tenant-Id`): `POST/GET /api/v1/companies`, `DELETE /api/v1/companies/:id`
+  (escrita só `INTERNAL_ADMIN`).
+- **Empresa corrente** (`X-Tenant-Id`): `GET/PUT /api/v1/company` e o logo
+  (`POST /company/logo/signature`, `PUT/DELETE /company/logo`).
+- **Plano de contas** (`X-Tenant-Id`): `/api/v1/billing-plans` e `/api/v1/billing-accounts`, com hierarquia
+  de até 5 níveis, código gerado e isolamento por empresa.
+- **Paginação:** `page` e `pageSize` (padrão 10, máximo 100); resposta `{ items, page, pageSize, total }`.
+- **Logo:** o front envia a imagem direto ao Cloudinary com a assinatura gerada pela API e depois informa
+  a URL. Defina `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY` e `CLOUDINARY_API_SECRET` juntas (sem elas,
+  as rotas de logo respondem 503 `MEDIA_NOT_CONFIGURED`). Para limitar o tamanho do arquivo, configure um
+  _upload preset_ no Cloudinary.
+- **Desempenho:** leituras em uma query (`relationLoadStrategy: 'join'`) e listagens sempre paginadas; os
+  testes e2e garantem que o número de queries não cresce com o número de linhas.
+
 ## Como contribuir
 
 Usamos [Commitizen](https://commitizen.github.io/cz-cli/) e
