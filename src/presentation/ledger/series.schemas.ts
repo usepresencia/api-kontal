@@ -20,6 +20,7 @@ export const createSeriesSchema = z.object({
     frequency: z.enum(SeriesFrequency).optional(),
     count: count.optional(),
     until: isoDateSchema.optional(),
+    destinationAccountId: z.uuid().optional(),
 });
 
 export type CreateSeriesBody = z.infer<typeof createSeriesSchema>;
