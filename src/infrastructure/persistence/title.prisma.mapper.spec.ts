@@ -23,6 +23,8 @@ const row = {
     issueDate: day,
     expirationDate: day,
     feesPercentageMonthly: dec('0.05'),
+    isOpening: false,
+    openingDate: null,
     createdAt: new Date('2026-01-01'),
     updatedAt: new Date('2026-01-02'),
 };
@@ -54,8 +56,17 @@ describe('title.prisma.mapper', () => {
             status: 'OPEN',
             description: 'Venda',
         });
+        expect(data).toMatchObject({ isOpening: false, openingDate: null });
         expect(String(data.amount)).toBe('1000.5');
         expect(String(data.feesPercentageMonthly)).toBe('0.05');
+    });
+
+    it('ida e volta de título de implantação', () => {
+        const openingDate = new Date('2026-10-05T00:00:00.000Z');
+        const title = toTitleEntity({ ...row, isOpening: true, openingDate } as never);
+        expect(title).toMatchObject({ isOpening: true });
+        expect(title.openingDate).toEqual(openingDate);
+        expect(toTitleCreateData(title)).toMatchObject({ isOpening: true, openingDate });
     });
 
     it('toTitleUpdateData grava só o que muda depois da criação', () => {
@@ -75,6 +86,8 @@ describe('title.prisma.mapper', () => {
             issueDate: day,
             expirationDate: day,
             feesPercentageMonthly: 0,
+            isOpening: false,
+            openingDate: null,
             createdAt: day,
         });
         const data = toTitleUpdateData(title);

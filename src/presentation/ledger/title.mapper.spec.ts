@@ -26,11 +26,24 @@ describe('toTitleResponse', () => {
             issueDate: '2026-10-01',
             expirationDate: '2026-11-01',
             feesPercentageMonthly: 0,
+            isOpening: false,
+            openingDate: null,
             createdAt: '2026-10-01T00:00:00.000Z',
         });
     });
 
     it('sem nome de preset devolve null', () => {
         expect(toTitleResponse(titleFixture(), null).presetName).toBeNull();
+    });
+
+    it('título de implantação traz a data de implantação', () => {
+        const title = titleFixture({
+            isOpening: true,
+            openingDate: new Date('2026-10-05T00:00:00.000Z'),
+        });
+        expect(toTitleResponse(title, 'Venda')).toMatchObject({
+            isOpening: true,
+            openingDate: '2026-10-05',
+        });
     });
 });

@@ -39,6 +39,7 @@ describe('PresetEntity.create', () => {
             interestExpense: null,
             discountObtained: null,
             debtForgiveness: null,
+            openingBalance: null,
         });
     });
 

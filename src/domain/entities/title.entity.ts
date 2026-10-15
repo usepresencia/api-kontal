@@ -28,6 +28,8 @@ export interface TitleRow {
     issueDate: Date;
     expirationDate: Date;
     feesPercentageMonthly: number;
+    isOpening: boolean;
+    openingDate: Date | null;
     createdAt: Date;
 }
 
@@ -104,6 +106,16 @@ export class TitleEntity {
     get feesPercentageMonthly(): number {
         return this.row.feesPercentageMonthly;
     }
+    get isOpening(): boolean {
+        return this.row.isOpening;
+    }
+    get openingDate(): Date | null {
+        return this.row.openingDate;
+    }
+    /** Primeira data em que uma baixa é aceita: a implantação, quando houver, ou a emissão. */
+    get paymentFloorDate(): Date {
+        return this.row.openingDate ?? this.row.issueDate;
+    }
     get createdAt(): Date {
         return this.row.createdAt;
     }
@@ -145,6 +157,8 @@ export class TitleEntity {
             issueDate: validDate(params.issueDate ?? params.today, 'Data de emissão'),
             expirationDate: validDate(params.expirationDate, 'Data de vencimento'),
             feesPercentageMonthly: validFees(params.feesPercentageMonthly ?? 0),
+            isOpening: false,
+            openingDate: null,
             createdAt: params.createdAt ?? new Date(),
         });
     }

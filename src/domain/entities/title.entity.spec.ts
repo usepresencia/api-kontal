@@ -5,6 +5,7 @@ import {
 } from '@/domain/entities/title.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { TitleType } from '@/domain/ledger/title-type.js';
+import { titleFixture } from '@test/support/ledger-fakes.js';
 
 const today = new Date('2026-10-14T00:00:00.000Z');
 const due = new Date('2026-11-05T00:00:00.000Z');
@@ -202,5 +203,24 @@ describe('TitleEntity.fromPersistence', () => {
         });
         expect(title.createdAt).toBe(createdAt);
         expect(title.status).toBe('SETTLED');
+    });
+});
+
+describe('TitleEntity: implantação', () => {
+    const base = titleFixture();
+
+    it('título comum não é de implantação e o piso das baixas é a emissão', () => {
+        expect(base.isOpening).toBe(false);
+        expect(base.openingDate).toBeNull();
+        expect(base.paymentFloorDate).toEqual(base.issueDate);
+    });
+
+    it('título de implantação expõe a data e usa-a como piso das baixas', () => {
+        const opening = titleFixture({
+            isOpening: true,
+            openingDate: new Date('2026-10-05T00:00:00.000Z'),
+        });
+        expect(opening.isOpening).toBe(true);
+        expect(opening.paymentFloorDate).toEqual(new Date('2026-10-05T00:00:00.000Z'));
     });
 });

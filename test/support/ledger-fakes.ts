@@ -127,6 +127,8 @@ export function titleFixture(overrides: Partial<TitleRow> = {}): TitleEntity {
         issueDate: new Date('2026-10-01T00:00:00.000Z'),
         expirationDate: new Date('2026-11-01T00:00:00.000Z'),
         feesPercentageMonthly: 0,
+        isOpening: false,
+        openingDate: null,
         createdAt: new Date('2026-10-01T00:00:00.000Z'),
         ...overrides,
     });
