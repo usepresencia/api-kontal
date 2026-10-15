@@ -26,3 +26,10 @@ export const balanceSheetQuerySchema = z.object({
 });
 
 export type BalanceSheetQuery = z.infer<typeof balanceSheetQuerySchema>;
+
+export const dailyJournalQuerySchema = periodQuerySchema.extend({
+    page: z.coerce.number().int().min(1).default(1),
+    pageSize: z.coerce.number().int().min(1).max(31).default(7),
+});
+
+export type DailyJournalQuery = z.infer<typeof dailyJournalQuerySchema>;

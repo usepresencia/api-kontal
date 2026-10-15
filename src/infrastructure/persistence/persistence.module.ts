@@ -1,4 +1,5 @@
 import { Global, Module } from '@nestjs/common';
+import { DailyJournalPrismaRepository } from '@/infrastructure/persistence/daily-journal.prisma.repository.js';
 import { JournalReadPrismaRepository } from '@/infrastructure/persistence/journal-read.prisma.repository.js';
 import { LedgerTotalsPrismaRepository } from '@/infrastructure/persistence/ledger-totals.prisma.repository.js';
 import { ReportAccountPrismaRepository } from '@/infrastructure/persistence/report-account.prisma.repository.js';
@@ -25,6 +26,7 @@ import {
     REPORT_ACCOUNT_REPOSITORY,
     LEDGER_TOTALS_REPOSITORY,
     JOURNAL_READ_REPOSITORY,
+    DAILY_JOURNAL_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
 import { SeriesReadPrismaRepository } from '@/infrastructure/persistence/series-read.prisma.repository.js';
@@ -50,6 +52,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: REPORT_ACCOUNT_REPOSITORY, useClass: ReportAccountPrismaRepository },
         { provide: LEDGER_TOTALS_REPOSITORY, useClass: LedgerTotalsPrismaRepository },
         { provide: JOURNAL_READ_REPOSITORY, useClass: JournalReadPrismaRepository },
+        { provide: DAILY_JOURNAL_REPOSITORY, useClass: DailyJournalPrismaRepository },
     ],
     exports: [
         USER_REPOSITORY,
@@ -67,6 +70,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         REPORT_ACCOUNT_REPOSITORY,
         LEDGER_TOTALS_REPOSITORY,
         JOURNAL_READ_REPOSITORY,
+        DAILY_JOURNAL_REPOSITORY,
     ],
 })
 export class PersistenceModule {}
