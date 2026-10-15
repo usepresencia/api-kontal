@@ -1,9 +1,11 @@
 import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { GetCashFlowService } from '@/application/reports/get-cash-flow.service.js';
 import { GetAccountLedgerService } from '@/application/reports/get-account-ledger.service.js';
 import { GetBalanceSheetService } from '@/application/reports/get-balance-sheet.service.js';
 import { GetDailyJournalService } from '@/application/reports/get-daily-journal.service.js';
 import { GetDreService } from '@/application/reports/get-dre.service.js';
 import { GetTrialBalanceService } from '@/application/reports/get-trial-balance.service.js';
+import { toCashFlowResponse } from '@/presentation/reports/cash-flow.mapper.js';
 import { toAccountLedgerResponse } from '@/presentation/reports/account-ledger.mapper.js';
 import { toDailyJournalResponse } from '@/presentation/reports/daily-journal.mapper.js';
 import { toBalanceSheetResponse } from '@/presentation/reports/balance-sheet.mapper.js';
@@ -22,6 +24,8 @@ import {
     dreQuerySchema,
     type TrialBalanceQuery,
     trialBalanceQuerySchema,
+    type CashFlowQuery,
+    cashFlowQuerySchema,
 } from '@/presentation/reports/report.schemas.js';
 import { toTrialBalanceResponse } from '@/presentation/reports/trial-balance.mapper.js';
 
@@ -34,6 +38,7 @@ export class ReportsController {
         private readonly getBalanceSheet: GetBalanceSheetService,
         private readonly getDailyJournal: GetDailyJournalService,
         private readonly getAccountLedger: GetAccountLedgerService,
+        private readonly getCashFlow: GetCashFlowService,
     ) {}
 
     @Get('dre')
@@ -74,5 +79,13 @@ export class ReportsController {
         @Query(new ZodValidationPipe(accountLedgerQuerySchema)) query: AccountLedgerQuery,
     ) {
         return toAccountLedgerResponse(await this.getAccountLedger.execute(companyId, query));
+    }
+
+    @Get('cash-flow')
+    async cashFlow(
+        @TenantId() companyId: string,
+        @Query(new ZodValidationPipe(cashFlowQuerySchema)) query: CashFlowQuery,
+    ) {
+        return toCashFlowResponse(await this.getCashFlow.execute(companyId, query));
     }
 }
