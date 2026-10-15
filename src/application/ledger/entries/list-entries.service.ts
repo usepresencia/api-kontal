@@ -1,4 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
+import { assertDateRange } from '@/application/reports/assert-date-range.js';
 import { requireTitleView } from '@/application/ledger/require-title.js';
 import type { Page, PageRequest } from '@/domain/pagination.js';
 import type {
@@ -21,13 +22,14 @@ export class ListEntriesService {
 
     /**
      * Lista as baixas da empresa; com `titleId`, confirma antes que o título é da empresa.
-     * @throws DomainError TITLE_NOT_FOUND
+     * @throws DomainError TITLE_NOT_FOUND, DATE_RANGE_INVALID
      */
     async execute(
         companyId: string,
         filter: EntryFilter,
         page: PageRequest,
     ): Promise<Page<EntryView>> {
+        if (filter.paidFrom && filter.paidTo) assertDateRange(filter.paidFrom, filter.paidTo);
         if (filter.titleId) await requireTitleView(this.titles, companyId, filter.titleId);
         return this.entries.list(companyId, filter, page);
     }

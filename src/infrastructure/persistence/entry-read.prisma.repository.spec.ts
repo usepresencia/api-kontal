@@ -18,11 +18,11 @@ const row = {
     description: '',
     createdAt: day,
     updatedAt: day,
-    title: { description: 'Venda' },
+    title: { description: 'Venda', type: 'INCOME' },
     billingAccount: { name: 'Banco' },
 };
 const include = {
-    title: { select: { description: true } },
+    title: { select: { description: true, type: true } },
     billingAccount: { select: { name: true } },
 };
 

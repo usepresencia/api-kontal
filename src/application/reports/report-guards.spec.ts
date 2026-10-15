@@ -12,6 +12,14 @@ describe('assertDateRange', () => {
             expect.objectContaining({ code: 'DATE_RANGE_INVALID' }),
         );
     });
+
+    it('com maxDays recusa períodos maiores (o limite é inclusivo nos dois extremos)', () => {
+        expect(() => assertDateRange(day('2026-01-01'), day('2026-12-31'), 365)).not.toThrow();
+        expect(() => assertDateRange(day('2026-01-01'), day('2027-01-01'), 365)).toThrow(
+            expect.objectContaining({ code: 'DATE_RANGE_INVALID' }),
+        );
+        expect(() => assertDateRange(day('2026-10-01'), day('2026-10-01'), 1)).not.toThrow();
+    });
 });
 
 describe('resolveReportPlan', () => {

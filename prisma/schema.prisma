@@ -323,6 +323,7 @@ model Entry {
 
   @@index([titleId, paidAt])
   @@index([billingAccountId])
+  @@index([paidAt])
 }
 
 model JournalEntry {

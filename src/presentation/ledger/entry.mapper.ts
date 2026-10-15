@@ -3,11 +3,17 @@ import type { EntryView } from '@/domain/repositories/entry-read.repository.inte
 import { toIsoDate } from '@/presentation/common/iso-date.js';
 
 /** Resposta da API para uma baixa: valores em texto e os nomes do título e da conta. */
-export function toEntryResponse({ entry, titleDescription, billingAccountName }: EntryView) {
+export function toEntryResponse({
+    entry,
+    titleDescription,
+    titleType,
+    billingAccountName,
+}: EntryView) {
     return {
         id: entry.id,
         titleId: entry.titleId,
         titleDescription,
+        titleType,
         kind: entry.kind,
         billingAccountId: entry.billingAccountId,
         billingAccountName,

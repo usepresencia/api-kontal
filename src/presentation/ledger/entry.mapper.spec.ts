@@ -11,11 +11,17 @@ describe('toEntryResponse', () => {
             totalAmount: 104000,
         });
         expect(
-            toEntryResponse({ entry, titleDescription: 'Venda', billingAccountName: 'Banco' }),
+            toEntryResponse({
+                entry,
+                titleDescription: 'Venda',
+                titleType: 'INCOME',
+                billingAccountName: 'Banco',
+            }),
         ).toEqual({
             id: 'e1',
             titleId: 't1',
             titleDescription: 'Venda',
+            titleType: 'INCOME',
             kind: 'PAYMENT',
             billingAccountId: 'bank',
             billingAccountName: 'Banco',
@@ -39,7 +45,12 @@ describe('toEntryResponse', () => {
             totalAmount: 0,
         });
         expect(
-            toEntryResponse({ entry, titleDescription: 'Venda', billingAccountName: null }),
+            toEntryResponse({
+                entry,
+                titleDescription: 'Venda',
+                titleType: 'INCOME',
+                billingAccountName: null,
+            }),
         ).toMatchObject({
             kind: 'WRITE_OFF',
             billingAccountId: null,
