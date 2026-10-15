@@ -4,6 +4,7 @@ import { GetJournalEntryService } from '@/application/ledger/journal/get-journal
 import { ListJournalEntriesService } from '@/application/ledger/journal/list-journal-entries.service.js';
 import { ReverseManualEntryService } from '@/application/ledger/journal/reverse-manual-entry.service.js';
 import { ClosePeriodService } from '@/application/ledger/periods/close-period.service.js';
+import { ReopenPeriodService } from '@/application/ledger/periods/reopen-period.service.js';
 import { ListPeriodClosingsService } from '@/application/ledger/periods/list-period-closings.service.js';
 import { CreateEntryService } from '@/application/ledger/entries/create-entry.service.js';
 import { DeleteEntryService } from '@/application/ledger/entries/delete-entry.service.js';
@@ -72,6 +73,7 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         ReverseManualEntryService,
         ClosePeriodService,
         ListPeriodClosingsService,
+        ReopenPeriodService,
     ],
 })
 export class LedgerModule {}
