@@ -7,6 +7,7 @@ import { EntryKind } from '@/domain/entities/entry.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
 import { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
+import { assertPaymentDateOpen } from '@/domain/ledger/period-lock.policy.js';
 import type { ILedgerUnitOfWork } from '@/domain/repositories/ledger.unit-of-work.interface.js';
 import { LEDGER_UNIT_OF_WORK } from '@/infrastructure/persistence/persistence.tokens.js';
 import { CLOCK } from '@/infrastructure/time/time.tokens.js';
@@ -20,7 +21,7 @@ export class DeleteEntryService {
 
     /**
      * Exclui a baixa, reabre o saldo do título e posta o estorno, com o título travado.
-     * @throws DomainError ENTRY_NOT_FOUND, ENTRY_DELETE_BLOCKED
+     * @throws DomainError ENTRY_NOT_FOUND, ENTRY_DELETE_BLOCKED, PERIOD_CLOSED
      */
     execute(companyId: string, id: string): Promise<void> {
         return this.uow.run(async tx => {
@@ -29,6 +30,7 @@ export class DeleteEntryService {
             const title = await requireLockedTitle(tx, companyId, found.titleId);
             const entry = await tx.entries.find(companyId, id);
             if (!entry) throw entryNotFound();
+            assertPaymentDateOpen(entry.paidAt, await tx.journal.closedThrough(companyId));
             if (entry.kind === EntryKind.PAYMENT && (await tx.entries.hasWriteOff(title.id))) {
                 throw new DomainError(
                     ErrorCode.ENTRY_DELETE_BLOCKED,
