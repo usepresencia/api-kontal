@@ -1,4 +1,5 @@
 import { randomUUID } from 'node:crypto';
+import { toSortKey } from '@/domain/billing/account-code.js';
 import { appendCnpjCheckDigits } from '@/domain/companies/cnpj.js';
 import type { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 
@@ -48,5 +49,46 @@ export function companyFixtureData(overrides: CompanyFixtureOverrides = {}) {
 export function createCompanyFixture(db: PrismaService, overrides: CompanyFixtureOverrides = {}) {
     return db.company.create({
         data: { ...companyFixtureData(overrides), address: { create: addressFixture() } },
+    });
+}
+
+export function createPlanFixture(
+    db: PrismaService,
+    companyId: string,
+    overrides: { id?: string; name?: string } = {},
+) {
+    return db.billingPlan.create({
+        data: {
+            id: overrides.id ?? randomUUID(),
+            companyId,
+            name: overrides.name ?? 'Plano Teste',
+            description: '',
+        },
+    });
+}
+
+export function createAccountFixture(
+    db: PrismaService,
+    params: {
+        billingPlanId: string;
+        code: string;
+        level: number;
+        parentId?: string | null;
+        id?: string;
+        name?: string;
+        accountType?: 'ANALYTIC' | 'SYNTHETIC';
+    },
+) {
+    return db.billingAccount.create({
+        data: {
+            id: params.id ?? randomUUID(),
+            billingPlanId: params.billingPlanId,
+            parentId: params.parentId ?? null,
+            name: params.name ?? `Conta ${params.code}`,
+            accountType: params.accountType ?? 'SYNTHETIC',
+            code: params.code,
+            sortKey: toSortKey(params.code),
+            level: params.level,
+        },
     });
 }
