@@ -1,4 +1,4 @@
-import { formatMoney, MONEY_PATTERN, parseMoney } from '@/domain/money.js';
+import { formatMoney, formatSignedMoney, MONEY_PATTERN, parseMoney } from '@/domain/money.js';
 
 describe('parseMoney', () => {
     it.each([
@@ -44,6 +44,27 @@ describe('formatMoney', () => {
 
     it.each([-1, 1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 2])('rejeita %s', cents => {
         expect(() => formatMoney(cents)).toThrow(
+            expect.objectContaining({ code: 'INTERNAL_ERROR' }),
+        );
+    });
+});
+
+describe('formatSignedMoney', () => {
+    it.each([
+        [123450, '1234.50'],
+        [0, '0.00'],
+        [-5, '-0.05'],
+        [-123450, '-1234.50'],
+    ])('%i centavos → %j', (cents, text) => {
+        expect(formatSignedMoney(cents)).toBe(text);
+    });
+
+    it('zero negativo sai sem sinal', () => {
+        expect(formatSignedMoney(-0)).toBe('0.00');
+    });
+
+    it.each([1.5, Number.NaN, Number.MAX_SAFE_INTEGER + 2])('rejeita %s', cents => {
+        expect(() => formatSignedMoney(cents)).toThrow(
             expect.objectContaining({ code: 'INTERNAL_ERROR' }),
         );
     });

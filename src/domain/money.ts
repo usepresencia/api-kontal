@@ -32,3 +32,11 @@ export function formatMoney(cents: Cents): string {
     }
     return `${Math.trunc(cents / 100)}.${String(cents % 100).padStart(2, '0')}`;
 }
+
+/** Converte centavos (inclusive negativos) em texto com 2 casas ("-1234.50"). */
+export function formatSignedMoney(cents: Cents): string {
+    if (!Number.isSafeInteger(cents)) {
+        throw new DomainError(ErrorCode.INTERNAL_ERROR, `Valor em centavos inválido: ${cents}`);
+    }
+    return cents < 0 ? `-${formatMoney(-cents)}` : formatMoney(cents);
+}
