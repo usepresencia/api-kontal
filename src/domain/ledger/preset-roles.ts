@@ -12,6 +12,7 @@ export const PRESET_ROLE_NATURE = {
     interestExpense: AccountNature.EXPENSE,
     discountObtained: AccountNature.REVENUE,
     debtForgiveness: AccountNature.REVENUE,
+    openingBalance: AccountNature.EQUITY,
 } as const;
 
 export type PresetRole = keyof typeof PRESET_ROLE_NATURE;

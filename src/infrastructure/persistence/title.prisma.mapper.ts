@@ -19,6 +19,8 @@ export function toTitleEntity(row: Title): TitleEntity {
         issueDate: row.issueDate,
         expirationDate: row.expirationDate,
         feesPercentageMonthly: Number(row.feesPercentageMonthly.toFixed(2)),
+        isOpening: row.isOpening,
+        openingDate: row.openingDate,
         createdAt: row.createdAt,
     });
 }
@@ -43,6 +45,8 @@ export function toTitleCreateData(title: TitleEntity) {
         issueDate: title.issueDate,
         expirationDate: title.expirationDate,
         feesPercentageMonthly: fees(title),
+        isOpening: title.isOpening,
+        openingDate: title.openingDate,
         createdAt: title.createdAt,
     };
 }

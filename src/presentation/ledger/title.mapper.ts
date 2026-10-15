@@ -21,6 +21,8 @@ export function toTitleResponse(title: TitleEntity, presetName: string | null) {
         issueDate: toIsoDate(title.issueDate),
         expirationDate: toIsoDate(title.expirationDate),
         feesPercentageMonthly: title.feesPercentageMonthly,
+        isOpening: title.isOpening,
+        openingDate: title.openingDate ? toIsoDate(title.openingDate) : null,
         createdAt: title.createdAt.toISOString(),
     };
 }

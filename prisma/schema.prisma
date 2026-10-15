@@ -71,6 +71,7 @@ enum PresetRole {
   interestExpense
   discountObtained
   debtForgiveness
+  openingBalance
 }
 
 enum TitleType {
@@ -292,6 +293,8 @@ model Title {
   issueDate             DateTime       @db.Date
   expirationDate        DateTime       @db.Date
   feesPercentageMonthly Decimal        @default(0) @db.Decimal(5, 2)
+  isOpening             Boolean        @default(false)
+  openingDate           DateTime?      @db.Date
   createdAt             DateTime       @default(now())
   updatedAt             DateTime       @updatedAt
   company               Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)

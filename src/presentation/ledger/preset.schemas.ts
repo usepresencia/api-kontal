@@ -14,6 +14,7 @@ const presetAccountsSchema = z.object({
     interestExpense: optionalAccount,
     discountObtained: optionalAccount,
     debtForgiveness: optionalAccount,
+    openingBalance: optionalAccount,
 });
 
 /** Corpo de criação do preset (a normalização e as regras são do domínio). */

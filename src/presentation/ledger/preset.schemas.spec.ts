@@ -62,3 +62,26 @@ describe('listPresetsQuerySchema', () => {
         expect(listPresetsQuerySchema.safeParse({ isActive: 'talvez' }).success).toBe(false);
     });
 });
+
+describe('createPresetSchema: openingBalance', () => {
+    it('openingBalance é opcional, aceita null e exige UUID', () => {
+        const body = {
+            billingPlanId: uuid,
+            name: 'P',
+            accounts: { receivable: uuid, payable: uuid },
+        };
+        expect(createPresetSchema.parse(body).accounts.openingBalance).toBeUndefined();
+        expect(
+            createPresetSchema.parse({
+                ...body,
+                accounts: { ...body.accounts, openingBalance: null },
+            }).accounts.openingBalance,
+        ).toBeNull();
+        expect(
+            createPresetSchema.safeParse({
+                ...body,
+                accounts: { ...body.accounts, openingBalance: 'x' },
+            }).success,
+        ).toBe(false);
+    });
+});
