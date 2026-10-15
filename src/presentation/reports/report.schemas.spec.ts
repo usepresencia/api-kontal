@@ -1,6 +1,7 @@
 import {
     accountLedgerQuerySchema,
     balanceSheetQuerySchema,
+    cashFlowQuerySchema,
     dailyJournalQuerySchema,
     dreQuerySchema,
     trialBalanceQuerySchema,
@@ -92,5 +93,17 @@ describe('accountLedgerQuerySchema', () => {
         expect(
             accountLedgerQuerySchema.safeParse({ start: base.start, end: base.end }).success,
         ).toBe(false);
+    });
+});
+
+describe('cashFlowQuerySchema', () => {
+    const base = { start: '2026-10-01', end: '2026-10-31' };
+
+    it('aceita agrupamento por mês ou dia e o deixa opcional', () => {
+        expect(cashFlowQuerySchema.parse(base).groupBy).toBeUndefined();
+        expect(cashFlowQuerySchema.parse({ ...base, groupBy: 'day' }).groupBy).toBe('day');
+        expect(cashFlowQuerySchema.parse({ ...base, groupBy: 'month' }).groupBy).toBe('month');
+        expect(cashFlowQuerySchema.safeParse({ ...base, groupBy: 'year' }).success).toBe(false);
+        expect(cashFlowQuerySchema.safeParse({ end: base.end }).success).toBe(false);
     });
 });

@@ -43,3 +43,9 @@ export const accountLedgerQuerySchema = pageQuerySchema.extend({
 });
 
 export type AccountLedgerQuery = z.infer<typeof accountLedgerQuerySchema>;
+
+export const cashFlowQuerySchema = periodQuerySchema.extend({
+    groupBy: z.enum(['month', 'day']).optional(),
+});
+
+export type CashFlowQuery = z.infer<typeof cashFlowQuerySchema>;
