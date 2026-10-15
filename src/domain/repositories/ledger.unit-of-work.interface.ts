@@ -1,6 +1,7 @@
 import type { AccountRef } from '@/domain/billing/account-ref.js';
 import type { EntryEntity } from '@/domain/entities/entry.entity.js';
 import type { JournalEntryEntity } from '@/domain/entities/journal-entry.entity.js';
+import type { SeriesEntity } from '@/domain/entities/series.entity.js';
 import type { PresetEntity } from '@/domain/entities/preset.entity.js';
 import type { TitleEntity } from '@/domain/entities/title.entity.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
@@ -49,6 +50,18 @@ export interface IEntryTxRepository {
     hasWriteOff(titleId: string): Promise<boolean>;
 }
 
+export interface ISeriesTxRepository {
+    insert(series: SeriesEntity): Promise<void>;
+    /** Trava a linha da série (`FOR UPDATE`) e a devolve; `null` se não é da empresa. */
+    lock(companyId: string, id: string): Promise<SeriesEntity | null>;
+    save(series: SeriesEntity): Promise<void>;
+    delete(id: string): Promise<void>;
+    /** Títulos da série em ordem de índice. */
+    titles(seriesId: string): Promise<TitleEntity[]>;
+    /** Título de maior índice da série. */
+    lastTitle(seriesId: string): Promise<TitleEntity | null>;
+}
+
 /** Repositórios ligados à mesma transação do banco. */
 export interface ILedgerTx {
     journal: IJournalTxRepository;
@@ -56,6 +69,7 @@ export interface ILedgerTx {
     accounts: IAccountTxRepository;
     titles: ITitleTxRepository;
     entries: IEntryTxRepository;
+    series: ISeriesTxRepository;
 }
 
 export interface ILedgerUnitOfWork {

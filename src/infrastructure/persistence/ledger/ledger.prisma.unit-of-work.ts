@@ -8,6 +8,7 @@ import { AccountTxRepository } from '@/infrastructure/persistence/ledger/account
 import { EntryTxRepository } from '@/infrastructure/persistence/ledger/entry.tx.repository.js';
 import { JournalTxRepository } from '@/infrastructure/persistence/ledger/journal.tx.repository.js';
 import { PresetTxRepository } from '@/infrastructure/persistence/ledger/preset.tx.repository.js';
+import { SeriesTxRepository } from '@/infrastructure/persistence/ledger/series.tx.repository.js';
 import { TitleTxRepository } from '@/infrastructure/persistence/ledger/title.tx.repository.js';
 import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 
@@ -22,6 +23,7 @@ export function buildLedgerTx(client: Prisma.TransactionClient): ILedgerTx {
         accounts: new AccountTxRepository(client),
         titles: new TitleTxRepository(client),
         entries: new EntryTxRepository(client),
+        series: new SeriesTxRepository(client),
     };
 }
 

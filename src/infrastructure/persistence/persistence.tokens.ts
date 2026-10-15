@@ -9,3 +9,4 @@ export const PRESET_REPOSITORY = Symbol('IPresetRepository');
 export const LEDGER_UNIT_OF_WORK = Symbol('ILedgerUnitOfWork');
 export const TITLE_READ_REPOSITORY = Symbol('ITitleReadRepository');
 export const ENTRY_READ_REPOSITORY = Symbol('IEntryReadRepository');
+export const SERIES_READ_REPOSITORY = Symbol('ISeriesReadRepository');
