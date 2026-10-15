@@ -18,7 +18,14 @@ describe('LedgerPrismaUnitOfWork.run', () => {
         const { uow, prisma } = makeUow();
         const result = await uow.run(async tx => {
             expect(Object.keys(tx)).toEqual(
-                expect.arrayContaining(['journal', 'presets', 'accounts', 'titles', 'entries']),
+                expect.arrayContaining([
+                    'journal',
+                    'presets',
+                    'accounts',
+                    'titles',
+                    'entries',
+                    'series',
+                ]),
             );
             return 42;
         });

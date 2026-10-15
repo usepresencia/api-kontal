@@ -16,10 +16,12 @@ import {
     MEMBERSHIP_REPOSITORY,
     PLATFORM_ACCESS_REPOSITORY,
     PRESET_REPOSITORY,
+    SERIES_READ_REPOSITORY,
     TITLE_READ_REPOSITORY,
     USER_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
+import { SeriesReadPrismaRepository } from '@/infrastructure/persistence/series-read.prisma.repository.js';
 import { TitleReadPrismaRepository } from '@/infrastructure/persistence/title-read.prisma.repository.js';
 import { PlatformAccessPrismaRepository } from '@/infrastructure/persistence/platform-access.prisma.repository.js';
 import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.repository.js';
@@ -36,6 +38,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: LEDGER_UNIT_OF_WORK, useClass: LedgerPrismaUnitOfWork },
         { provide: TITLE_READ_REPOSITORY, useClass: TitleReadPrismaRepository },
         { provide: ENTRY_READ_REPOSITORY, useClass: EntryReadPrismaRepository },
+        { provide: SERIES_READ_REPOSITORY, useClass: SeriesReadPrismaRepository },
         { provide: MEMBERSHIP_REPOSITORY, useClass: MembershipPrismaRepository },
         { provide: PLATFORM_ACCESS_REPOSITORY, useClass: PlatformAccessPrismaRepository },
     ],
@@ -49,6 +52,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         LEDGER_UNIT_OF_WORK,
         TITLE_READ_REPOSITORY,
         ENTRY_READ_REPOSITORY,
+        SERIES_READ_REPOSITORY,
         MEMBERSHIP_REPOSITORY,
         PLATFORM_ACCESS_REPOSITORY,
     ],
