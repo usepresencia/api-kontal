@@ -12,6 +12,7 @@ import { TimeModule } from '@/infrastructure/time/time.module.js';
 import { AuthModule } from '@/presentation/auth/auth.module.js';
 import { BillingModule } from '@/presentation/billing/billing.module.js';
 import { CompaniesModule } from '@/presentation/companies/companies.module.js';
+import { LedgerModule } from '@/presentation/ledger/ledger.module.js';
 import { HealthModule } from '@/presentation/health/health.module.js';
 
 @Module({
@@ -25,6 +26,7 @@ import { HealthModule } from '@/presentation/health/health.module.js';
         AuthModule,
         CompaniesModule,
         BillingModule,
+        LedgerModule,
         HealthModule,
     ],
     providers: [
