@@ -40,7 +40,7 @@ export class WriteOffTitleService {
                 principal: title.remainingAmount,
                 paidAt: input.paidAt,
                 description: input.description,
-                issueDate: title.issueDate,
+                issueDate: title.paymentFloorDate,
                 today: this.clock.today(),
             });
             const journal = settlementJournal({

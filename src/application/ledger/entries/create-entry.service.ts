@@ -65,7 +65,7 @@ export class CreateEntryService {
                 paidAt: input.paidAt,
                 paymentMethod: input.paymentMethod,
                 description: input.description,
-                issueDate: title.issueDate,
+                issueDate: title.paymentFloorDate,
                 today: this.clock.today(),
             });
             const updated = title.applyPayment(entry.principalAmount);

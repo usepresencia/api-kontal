@@ -1,3 +1,4 @@
+import type { Opening } from '@/domain/ledger/title-opening.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
 import { ErrorCode } from '@/domain/errors/error-codes.js';
 import type { TitleType } from '@/domain/ledger/title-type.js';
@@ -137,6 +138,7 @@ export class TitleEntity {
         issueDate?: Date;
         expirationDate: Date;
         feesPercentageMonthly?: number;
+        opening?: Opening;
         seriesId?: string;
         seriesIndex?: number;
         createdAt?: Date;
@@ -153,12 +155,15 @@ export class TitleEntity {
             status: TitleStatus.OPEN,
             description: requiredText(params.description, 'Descrição do título'),
             amount: validAmount(params.amount),
-            settledAmount: 0,
-            issueDate: validDate(params.issueDate ?? params.today, 'Data de emissão'),
+            settledAmount: params.opening?.settledAmount ?? 0,
+            issueDate: validDate(
+                params.issueDate ?? params.opening?.openingDate ?? params.today,
+                'Data de emissão',
+            ),
             expirationDate: validDate(params.expirationDate, 'Data de vencimento'),
             feesPercentageMonthly: validFees(params.feesPercentageMonthly ?? 0),
-            isOpening: false,
-            openingDate: null,
+            isOpening: params.opening !== undefined,
+            openingDate: params.opening?.openingDate ?? null,
             createdAt: params.createdAt ?? new Date(),
         });
     }
