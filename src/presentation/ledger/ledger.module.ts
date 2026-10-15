@@ -1,4 +1,6 @@
 import { Module } from '@nestjs/common';
+import { GetJournalEntryService } from '@/application/ledger/journal/get-journal-entry.service.js';
+import { ListJournalEntriesService } from '@/application/ledger/journal/list-journal-entries.service.js';
 import { CreateEntryService } from '@/application/ledger/entries/create-entry.service.js';
 import { DeleteEntryService } from '@/application/ledger/entries/delete-entry.service.js';
 import { GetEntryService } from '@/application/ledger/entries/get-entry.service.js';
@@ -21,6 +23,7 @@ import { ListTitlesService } from '@/application/ledger/titles/list-titles.servi
 import { UpdateTitleService } from '@/application/ledger/titles/update-title.service.js';
 import { WriteOffTitleService } from '@/application/ledger/titles/write-off-title.service.js';
 import { EntriesController } from '@/presentation/ledger/entries.controller.js';
+import { JournalEntriesController } from '@/presentation/ledger/journal-entries.controller.js';
 import { PresetsController } from '@/presentation/ledger/presets.controller.js';
 import { TitleEntriesController } from '@/presentation/ledger/title-entries.controller.js';
 import { TitleSeriesController } from '@/presentation/ledger/title-series.controller.js';
@@ -33,6 +36,7 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         TitleEntriesController,
         EntriesController,
         TitleSeriesController,
+        JournalEntriesController,
     ],
     providers: [
         CreatePresetService,
@@ -56,6 +60,8 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         CancelTitleSeriesService,
         GetTitleSeriesService,
         ListTitleSeriesService,
+        GetJournalEntryService,
+        ListJournalEntriesService,
     ],
 })
 export class LedgerModule {}
