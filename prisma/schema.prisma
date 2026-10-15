@@ -106,6 +106,8 @@ enum JournalRefType {
   TITLE_CANCELLATION
   SETTLEMENT
   SETTLEMENT_REVERSAL
+  MANUAL
+  MANUAL_REVERSAL
 }
 
 model User {
@@ -325,6 +327,7 @@ model Entry {
 
 model JournalEntry {
   id            String         @id @default(uuid())
+  number        BigInt         @unique @default(autoincrement())
   companyId     String
   date          DateTime       @db.Date
   description   String         @default("")
@@ -338,6 +341,7 @@ model JournalEntry {
 
   @@unique([referenceType, referenceId])
   @@index([companyId, date])
+  @@index([companyId, date, number])
 }
 
 model JournalLine {
