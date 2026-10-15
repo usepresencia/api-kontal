@@ -26,6 +26,14 @@ enum AccountType {
   SYNTHETIC
 }
 
+enum AccountNature {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
 enum PresetRole {
   receivable
   payable
@@ -171,6 +179,7 @@ model BillingAccount {
   parentId        String?
   name            String
   accountType     AccountType
+  nature          AccountNature
   isActive        Boolean          @default(true)
   code            String
   sortKey         String
@@ -190,6 +199,7 @@ model BillingAccount {
   @@index([billingPlanId, parentId])
   @@index([billingPlanId, sortKey])
   @@index([accountType])
+  @@index([billingPlanId, nature])
 }
 
 model Preset {

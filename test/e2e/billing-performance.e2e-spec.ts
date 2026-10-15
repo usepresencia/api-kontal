@@ -19,6 +19,7 @@ async function seedPlan(name: string, accounts: number): Promise<string> {
             parentId: root.id,
             name: `Conta ${i + 1}`,
             accountType: 'ANALYTIC' as const,
+            nature: 'ASSET' as const,
             code: `1.${i + 1}`,
             sortKey: toSortKey(`1.${i + 1}`),
             level: 2,

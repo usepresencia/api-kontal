@@ -32,6 +32,8 @@ export interface IBillingAccountRepository {
     ): Promise<BillingAccountWithRefs>;
     update(companyId: string, account: BillingAccountEntity): Promise<void>;
     hasChildren(id: string): Promise<boolean>;
+    /** Indica se a conta é usada por linha do razão, baixa, preset ou título. */
+    isInUse(accountId: string): Promise<boolean>;
     delete(companyId: string, id: string): Promise<void>;
     list(
         companyId: string,

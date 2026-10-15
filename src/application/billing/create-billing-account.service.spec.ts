@@ -1,4 +1,5 @@
 import { CreateBillingAccountService } from '@/application/billing/create-billing-account.service.js';
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import {
     accountFixture,
@@ -11,7 +12,12 @@ import {
 const plans = fakePlans();
 const accounts = fakeAccounts();
 const service = new CreateBillingAccountService(plans, accounts);
-const input = { billingPlanId: 'p1', name: 'Passivo', accountType: AccountType.SYNTHETIC };
+const input = {
+    billingPlanId: 'p1',
+    name: 'Passivo',
+    accountType: AccountType.SYNTHETIC,
+    nature: AccountNature.LIABILITY,
+};
 const created = viewFixture();
 
 beforeEach(() => {
@@ -32,6 +38,7 @@ describe('CreateBillingAccountService', () => {
             accountType: 'SYNTHETIC',
             isActive: true,
             level: 1,
+            nature: 'LIABILITY',
         });
         expect(draft.id).toMatch(/^[0-9a-f-]{36}$/);
         expect(nextCode(null, ['1', '2'])).toBe('3');
@@ -39,7 +46,9 @@ describe('CreateBillingAccountService', () => {
     });
 
     it('conta filha: busca o pai escopado, soma o nível e gera o código a partir dele', async () => {
-        accounts.findParent.mockResolvedValue(accountFixture({ id: 'a0', code: '1', level: 1 }));
+        accounts.findParent.mockResolvedValue(
+            accountFixture({ id: 'a0', code: '1', level: 1, nature: AccountNature.LIABILITY }),
+        );
         await service.execute('c1', { ...input, parentId: 'a0' });
         const [draft, nextCode] = accounts.insertWithNextCode.mock.calls[0];
         expect(accounts.findParent).toHaveBeenCalledWith('c1', 'p1', 'a0');
@@ -75,7 +84,12 @@ describe('CreateBillingAccountService', () => {
 
     it('pai analítico lança ACCOUNT_PARENT_NOT_SYNTHETIC', async () => {
         accounts.findParent.mockResolvedValue(
-            accountFixture({ id: 'a0', accountType: AccountType.ANALYTIC, level: 2 }),
+            accountFixture({
+                id: 'a0',
+                accountType: AccountType.ANALYTIC,
+                level: 2,
+                nature: AccountNature.LIABILITY,
+            }),
         );
         await expect(service.execute('c1', { ...input, parentId: 'a0' })).rejects.toMatchObject({
             code: 'ACCOUNT_PARENT_NOT_SYNTHETIC',
@@ -83,7 +97,9 @@ describe('CreateBillingAccountService', () => {
     });
 
     it('sexto nível lança ACCOUNT_MAX_DEPTH_EXCEEDED', async () => {
-        accounts.findParent.mockResolvedValue(accountFixture({ id: 'a0', level: 5 }));
+        accounts.findParent.mockResolvedValue(
+            accountFixture({ id: 'a0', level: 5, nature: AccountNature.LIABILITY }),
+        );
         await expect(service.execute('c1', { ...input, parentId: 'a0' })).rejects.toMatchObject({
             code: 'ACCOUNT_MAX_DEPTH_EXCEEDED',
         });
@@ -94,5 +110,31 @@ describe('CreateBillingAccountService', () => {
             code: 'VALIDATION_ERROR',
         });
         expect(accounts.insertWithNextCode).not.toHaveBeenCalled();
+    });
+
+    it('conta raiz sem natureza lança ACCOUNT_NATURE_REQUIRED', async () => {
+        const { nature: _nature, ...withoutNature } = input;
+        await expect(service.execute('c1', withoutNature)).rejects.toMatchObject({
+            code: 'ACCOUNT_NATURE_REQUIRED',
+        });
+        expect(accounts.insertWithNextCode).not.toHaveBeenCalled();
+    });
+
+    it('conta filha herda a natureza do pai quando não informa', async () => {
+        accounts.findParent.mockResolvedValue(
+            accountFixture({ id: 'a0', nature: AccountNature.REVENUE }),
+        );
+        const { nature: _nature, ...withoutNature } = input;
+        await service.execute('c1', { ...withoutNature, parentId: 'a0' });
+        expect(accounts.insertWithNextCode.mock.calls[0][0].nature).toBe('REVENUE');
+    });
+
+    it('conta filha com natureza diferente da do pai lança ACCOUNT_NATURE_MISMATCH', async () => {
+        accounts.findParent.mockResolvedValue(
+            accountFixture({ id: 'a0', nature: AccountNature.REVENUE }),
+        );
+        await expect(service.execute('c1', { ...input, parentId: 'a0' })).rejects.toMatchObject({
+            code: 'ACCOUNT_NATURE_MISMATCH',
+        });
     });
 });

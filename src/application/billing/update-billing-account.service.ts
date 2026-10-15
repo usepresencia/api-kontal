@@ -2,6 +2,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { requireAccount } from '@/application/billing/require-account.js';
 import { assertCanChangeType } from '@/domain/billing/account-hierarchy.policy.js';
 import { AccountType } from '@/domain/billing/account-type.js';
+import { DomainError } from '@/domain/errors/domain-error.js';
+import { ErrorCode } from '@/domain/errors/error-codes.js';
 import type {
     BillingAccountWithRefs,
     IBillingAccountRepository,
@@ -14,7 +16,7 @@ export class UpdateBillingAccountService {
         @Inject(BILLING_ACCOUNT_REPOSITORY) private readonly accounts: IBillingAccountRepository,
     ) {}
 
-    /** Altera nome, status e tipo; só valida filhas quando a conta vira analítica. */
+    /** Altera nome, status e tipo; valida filhas ao virar analítica e uso ao virar sintética. */
     async execute(
         companyId: string,
         id: string,
@@ -23,14 +25,27 @@ export class UpdateBillingAccountService {
         const current = await requireAccount(this.accounts, companyId, id);
         const { account } = current;
         if (changes.accountType !== undefined && changes.accountType !== account.accountType) {
-            const hasChildren =
-                changes.accountType === AccountType.ANALYTIC
-                    ? await this.accounts.hasChildren(id)
-                    : false;
-            assertCanChangeType(changes.accountType, account.parentId !== null, hasChildren);
+            if (changes.accountType === AccountType.SYNTHETIC) {
+                await this.assertNotInUse(id);
+            } else {
+                assertCanChangeType(
+                    changes.accountType,
+                    account.parentId !== null,
+                    await this.accounts.hasChildren(id),
+                );
+            }
         }
         const updated = account.withChanges(changes);
         await this.accounts.update(companyId, updated);
         return { ...current, account: updated };
+    }
+
+    private async assertNotInUse(id: string): Promise<void> {
+        if (await this.accounts.isInUse(id)) {
+            throw new DomainError(
+                ErrorCode.ACCOUNT_IN_USE,
+                'A conta está em uso e não pode virar sintética',
+            );
+        }
     }
 }

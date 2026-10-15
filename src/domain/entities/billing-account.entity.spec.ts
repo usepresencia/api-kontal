@@ -1,3 +1,4 @@
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { DomainError } from '@/domain/errors/domain-error.js';
@@ -8,6 +9,7 @@ const draftParams = {
     parentId: null,
     name: ' Ativo ',
     accountType: AccountType.SYNTHETIC,
+    nature: AccountNature.ASSET,
     level: 1,
 };
 
@@ -19,6 +21,7 @@ describe('BillingAccountEntity.draft', () => {
             isActive: true,
             level: 1,
             parentId: null,
+            nature: 'ASSET',
         });
     });
 
@@ -42,6 +45,7 @@ describe('BillingAccountEntity', () => {
         parentId: 'a0',
         name: 'Caixa',
         accountType: AccountType.ANALYTIC,
+        nature: AccountNature.LIABILITY,
         isActive: true,
         code: '1.1',
         level: 2,
@@ -58,6 +62,7 @@ describe('BillingAccountEntity', () => {
             name: 'Banco',
             isActive: false,
             accountType: 'SYNTHETIC',
+            nature: 'LIABILITY',
             code: '1.1',
             level: 2,
             parentId: 'a0',

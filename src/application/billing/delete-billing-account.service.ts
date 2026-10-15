@@ -23,6 +23,12 @@ export class DeleteBillingAccountService {
                 'Exclusão bloqueada: esta conta possui contas filhas',
             );
         }
+        if (await this.accounts.isInUse(id)) {
+            throw new DomainError(
+                ErrorCode.ACCOUNT_IN_USE,
+                'Exclusão bloqueada: a conta está em uso',
+            );
+        }
         await this.accounts.delete(companyId, id);
     }
 }

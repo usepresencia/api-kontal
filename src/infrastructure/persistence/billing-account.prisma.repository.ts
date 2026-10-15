@@ -18,7 +18,7 @@ import {
     toAccountView,
 } from '@/infrastructure/persistence/billing-account.prisma.mapper.js';
 import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
-import { isUniqueConstraintError } from '@/utils/prisma.utils.js';
+import { isForeignKeyConstraintError, isUniqueConstraintError } from '@/utils/prisma.utils.js';
 
 @Injectable()
 export class BillingAccountPrismaRepository implements IBillingAccountRepository {
@@ -92,10 +92,32 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
         return (await this.prisma.billingAccount.count({ where: { parentId: id } })) > 0;
     }
 
+    async isInUse(accountId: string): Promise<boolean> {
+        const [lines, entries, presets, titles] = await Promise.all([
+            this.prisma.journalLine.count({ where: { accountId } }),
+            this.prisma.entry.count({ where: { billingAccountId: accountId } }),
+            this.prisma.presetAccount.count({ where: { accountId } }),
+            this.prisma.title.count({
+                where: { OR: [{ controlAccountId: accountId }, { resultAccountId: accountId }] },
+            }),
+        ]);
+        return lines + entries + presets + titles > 0;
+    }
+
     async delete(companyId: string, id: string): Promise<void> {
-        await this.prisma.billingAccount.deleteMany({
-            where: { id, billingPlan: { companyId } },
-        });
+        try {
+            await this.prisma.billingAccount.deleteMany({
+                where: { id, billingPlan: { companyId } },
+            });
+        } catch (err) {
+            if (isForeignKeyConstraintError(err)) {
+                throw new DomainError(
+                    ErrorCode.ACCOUNT_IN_USE,
+                    'Exclusão bloqueada: a conta está em uso',
+                );
+            }
+            throw err;
+        }
     }
 
     async list(

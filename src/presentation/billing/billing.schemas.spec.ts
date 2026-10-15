@@ -39,6 +39,13 @@ describe('createBillingAccountSchema', () => {
         );
     });
 
+    it('aceita a natureza informada e a omissão dela', () => {
+        expect(createBillingAccountSchema.parse({ ...valid, nature: 'REVENUE' }).nature).toBe(
+            'REVENUE',
+        );
+        expect(createBillingAccountSchema.parse(valid).nature).toBeUndefined();
+    });
+
     it.each([
         ['plano que não é UUID', { billingPlanId: 'p1' }],
         ['pai que não é UUID', { parentId: 'abc' }],
@@ -46,6 +53,7 @@ describe('createBillingAccountSchema', () => {
         ['tipo em minúsculas', { accountType: 'analytic' }],
         ['nome vazio', { name: '' }],
         ['isActive que não é booleano', { isActive: 'sim' }],
+        ['natureza desconhecida', { nature: 'OUTRA' }],
     ])('rejeita %s', (_label, overrides) => {
         expect(createBillingAccountSchema.safeParse({ ...valid, ...overrides }).success).toBe(
             false,

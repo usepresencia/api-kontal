@@ -1,3 +1,4 @@
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { BillingAccountPrismaRepository } from '@/infrastructure/persistence/billing-account.prisma.repository.js';
@@ -9,6 +10,7 @@ const accountRow = {
     parentId: 'a0',
     name: 'Caixa',
     accountType: 'ANALYTIC' as const,
+    nature: 'ASSET' as const,
     isActive: true,
     code: '1.1',
     sortKey: '000000001.000000001',
@@ -23,6 +25,7 @@ const draft = {
     parentId: null as string | null,
     name: 'Passivo',
     accountType: AccountType.SYNTHETIC,
+    nature: AccountNature.ASSET,
     isActive: true,
     level: 1,
 };
@@ -239,5 +242,64 @@ describe('BillingAccountPrismaRepository.insertWithNextCode', () => {
         const boom = new Error('db down');
         tx.$queryRaw.mockRejectedValue(boom);
         await expect(repo.insertWithNextCode(draft, () => '1')).rejects.toBe(boom);
+    });
+});
+
+describe('BillingAccountPrismaRepository.isInUse', () => {
+    function makeUsageRepo(counts: [number, number, number, number]) {
+        const [lines, entries, presets, titles] = counts;
+        const prisma = {
+            journalLine: { count: vi.fn().mockResolvedValue(lines) },
+            entry: { count: vi.fn().mockResolvedValue(entries) },
+            presetAccount: { count: vi.fn().mockResolvedValue(presets) },
+            title: { count: vi.fn().mockResolvedValue(titles) },
+        };
+        return {
+            prisma,
+            repo: new BillingAccountPrismaRepository(prisma as unknown as PrismaService),
+        };
+    }
+
+    it('conta sem nenhum uso', async () => {
+        const { repo } = makeUsageRepo([0, 0, 0, 0]);
+        await expect(repo.isInUse('a1')).resolves.toBe(false);
+    });
+
+    it.each([
+        ['linha do razão', [1, 0, 0, 0]],
+        ['baixa', [0, 1, 0, 0]],
+        ['preset', [0, 0, 1, 0]],
+        ['título', [0, 0, 0, 1]],
+    ] as const)('conta usada por %s', async (_label, counts) => {
+        const { repo } = makeUsageRepo([...counts]);
+        await expect(repo.isInUse('a1')).resolves.toBe(true);
+    });
+
+    it('consulta cada uso pelo id da conta', async () => {
+        const { repo, prisma } = makeUsageRepo([0, 0, 0, 0]);
+        await repo.isInUse('a1');
+        expect(prisma.journalLine.count).toHaveBeenCalledWith({ where: { accountId: 'a1' } });
+        expect(prisma.entry.count).toHaveBeenCalledWith({ where: { billingAccountId: 'a1' } });
+        expect(prisma.presetAccount.count).toHaveBeenCalledWith({ where: { accountId: 'a1' } });
+        expect(prisma.title.count).toHaveBeenCalledWith({
+            where: { OR: [{ controlAccountId: 'a1' }, { resultAccountId: 'a1' }] },
+        });
+    });
+});
+
+describe('BillingAccountPrismaRepository.delete: conta referenciada', () => {
+    it('violação de chave estrangeira (P2003) vira ACCOUNT_IN_USE', async () => {
+        const { repo, billingAccount } = makeRepo();
+        billingAccount.deleteMany.mockRejectedValue(
+            Object.assign(new Error('fk'), { code: 'P2003' }),
+        );
+        await expect(repo.delete('c1', 'a1')).rejects.toMatchObject({ code: 'ACCOUNT_IN_USE' });
+    });
+
+    it('propaga erro que não é P2003', async () => {
+        const { repo, billingAccount } = makeRepo();
+        const boom = new Error('db down');
+        billingAccount.deleteMany.mockRejectedValue(boom);
+        await expect(repo.delete('c1', 'a1')).rejects.toBe(boom);
     });
 });

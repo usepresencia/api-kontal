@@ -77,6 +77,7 @@ export function createAccountFixture(
         id?: string;
         name?: string;
         accountType?: 'ANALYTIC' | 'SYNTHETIC';
+        nature?: 'ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE';
     },
 ) {
     return db.billingAccount.create({
@@ -86,6 +87,7 @@ export function createAccountFixture(
             parentId: params.parentId ?? null,
             name: params.name ?? `Conta ${params.code}`,
             accountType: params.accountType ?? 'SYNTHETIC',
+            nature: params.nature ?? 'ASSET',
             code: params.code,
             sortKey: toSortKey(params.code),
             level: params.level,

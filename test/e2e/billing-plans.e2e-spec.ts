@@ -122,7 +122,12 @@ describe('planos de contas', () => {
         const root = await api()
             .post('/api/v1/billing-accounts')
             .set(await asAdmin())
-            .send({ billingPlanId: plan.id, name: 'Ativo', accountType: 'SYNTHETIC' })
+            .send({
+                billingPlanId: plan.id,
+                name: 'Ativo',
+                accountType: 'SYNTHETIC',
+                nature: 'ASSET',
+            })
             .expect(201);
         for (let i = 1; i <= 11; i += 1) {
             await api()

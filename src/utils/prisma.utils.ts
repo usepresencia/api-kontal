@@ -12,3 +12,13 @@ export function isUniqueConstraintError(err: unknown): boolean {
 export function ignoreUniqueConstraint(err: unknown): void {
     if (!isUniqueConstraintError(err)) throw err;
 }
+
+/** Indica se o erro é uma violação de chave estrangeira (P2003) do Prisma. */
+export function isForeignKeyConstraintError(err: unknown): boolean {
+    return (
+        typeof err === 'object' &&
+        err !== null &&
+        'code' in err &&
+        (err as { code: unknown }).code === 'P2003'
+    );
+}

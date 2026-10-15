@@ -1,3 +1,4 @@
+import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
 import { BillingPlanEntity } from '@/domain/entities/billing-plan.entity.js';
@@ -25,6 +26,7 @@ export function fakeAccounts() {
         insertWithNextCode: vi.fn(),
         update: vi.fn(),
         hasChildren: vi.fn(),
+        isInUse: vi.fn(),
         delete: vi.fn(),
         list: vi.fn(),
         listByPlan: vi.fn(),
@@ -43,6 +45,7 @@ export function accountFixture(
         id: string;
         parentId: string | null;
         accountType: AccountType;
+        nature: AccountNature;
         code: string;
         level: number;
     }> = {},
@@ -53,6 +56,7 @@ export function accountFixture(
         parentId: overrides.parentId ?? null,
         name: 'Ativo',
         accountType: overrides.accountType ?? AccountType.SYNTHETIC,
+        nature: overrides.nature ?? AccountNature.ASSET,
         isActive: true,
         code: overrides.code ?? '1',
         level: overrides.level ?? 1,

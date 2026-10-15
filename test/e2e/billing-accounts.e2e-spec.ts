@@ -20,7 +20,7 @@ const create = async (body: Record<string, unknown>, auth?: Record<string, strin
     api()
         .post('/api/v1/billing-accounts')
         .set(auth ?? (await asAdmin()))
-        .send({ billingPlanId: planId, ...body });
+        .send({ billingPlanId: planId, ...(body.parentId ? {} : { nature: 'ASSET' }), ...body });
 
 /** Cabeçalhos já autenticados (usuário provisionado), para disparar requisições em paralelo. */
 const warmAuth = async () => {

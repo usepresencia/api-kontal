@@ -52,6 +52,36 @@ describe('UpdateBillingAccountService', () => {
         expect(accounts.update).not.toHaveBeenCalled();
     });
 
+    it('virar sintética com a conta em uso lança ACCOUNT_IN_USE', async () => {
+        accounts.findById.mockResolvedValue(
+            viewFixture(
+                accountFixture({ accountType: AccountType.ANALYTIC, parentId: 'a0', level: 2 }),
+            ),
+        );
+        accounts.isInUse.mockResolvedValue(true);
+        await expect(
+            service.execute('c1', 'a1', { accountType: AccountType.SYNTHETIC }),
+        ).rejects.toMatchObject({ code: 'ACCOUNT_IN_USE' });
+        expect(accounts.update).not.toHaveBeenCalled();
+    });
+
+    it('virar sintética sem uso é permitido', async () => {
+        accounts.findById.mockResolvedValue(
+            viewFixture(
+                accountFixture({ accountType: AccountType.ANALYTIC, parentId: 'a0', level: 2 }),
+            ),
+        );
+        accounts.isInUse.mockResolvedValue(false);
+        const view = await service.execute('c1', 'a1', { accountType: AccountType.SYNTHETIC });
+        expect(view.account.accountType).toBe('SYNTHETIC');
+    });
+
+    it('alterar só o nome não consulta o uso da conta', async () => {
+        accounts.findById.mockResolvedValue(viewFixture());
+        await service.execute('c1', 'a1', { name: 'Novo' });
+        expect(accounts.isInUse).not.toHaveBeenCalled();
+    });
+
     it('conta raiz não vira analítica', async () => {
         accounts.findById.mockResolvedValue(viewFixture());
         accounts.hasChildren.mockResolvedValue(false);
@@ -92,6 +122,16 @@ describe('DeleteBillingAccountService', () => {
         accounts.hasChildren.mockResolvedValue(true);
         await expect(service.execute('c1', 'a1')).rejects.toMatchObject({
             code: 'ACCOUNT_HAS_CHILDREN',
+        });
+        expect(accounts.delete).not.toHaveBeenCalled();
+    });
+
+    it('conta em uso lança ACCOUNT_IN_USE', async () => {
+        accounts.findById.mockResolvedValue(viewFixture());
+        accounts.hasChildren.mockResolvedValue(false);
+        accounts.isInUse.mockResolvedValue(true);
+        await expect(service.execute('c1', 'a1')).rejects.toMatchObject({
+            code: 'ACCOUNT_IN_USE',
         });
         expect(accounts.delete).not.toHaveBeenCalled();
     });
