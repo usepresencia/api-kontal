@@ -52,3 +52,12 @@ export function buildAccountTree<V>(
 export function flattenTree<V>(nodes: readonly AccountNode<V>[]): AccountNode<V>[] {
     return nodes.flatMap(node => [node, ...flattenTree(node.children)]);
 }
+
+/** Ids da conta e de todas as suas descendentes. */
+export function descendantIds(accounts: readonly ReportAccount[], rootId: string): string[] {
+    const ids = [rootId];
+    for (let i = 0; i < ids.length; i++) {
+        for (const account of accounts) if (account.parentId === ids[i]) ids.push(account.id);
+    }
+    return ids;
+}

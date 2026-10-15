@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isoDateSchema } from '@/presentation/common/iso-date.js';
+import { pageQuerySchema } from '@/presentation/common/page-query.schema.js';
 
 /** Período inclusivo e plano opcional, comuns aos relatórios de período. */
 export const periodQuerySchema = z.object({
@@ -33,3 +34,12 @@ export const dailyJournalQuerySchema = periodQuerySchema.extend({
 });
 
 export type DailyJournalQuery = z.infer<typeof dailyJournalQuerySchema>;
+
+export const accountLedgerQuerySchema = pageQuerySchema.extend({
+    accountId: z.uuid(),
+    start: isoDateSchema,
+    end: isoDateSchema,
+    groupBy: z.enum(['day']).optional(),
+});
+
+export type AccountLedgerQuery = z.infer<typeof accountLedgerQuerySchema>;

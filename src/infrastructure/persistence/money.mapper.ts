@@ -10,3 +10,8 @@ export function toCents(decimal: { toFixed(fractionDigits: number): string }): C
 export function toDecimal(cents: Cents): Prisma.Decimal {
     return new Prisma.Decimal(formatMoney(cents));
 }
+
+/** Converte texto decimal com sinal (`"-12.50"`) em centavos. */
+export function signedCents(text: string): Cents {
+    return text.startsWith('-') ? -parseMoney(text.slice(1)) : parseMoney(text);
+}
