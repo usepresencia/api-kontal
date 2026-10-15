@@ -20,3 +20,4 @@ process.env.CORS_ALLOWED_ORIGINS = 'http://localhost:3000';
 process.env.CLOUDINARY_CLOUD_NAME = 'demo-cloud';
 process.env.CLOUDINARY_API_KEY = '123456789012345';
 process.env.CLOUDINARY_API_SECRET = 'test-secret';
+process.env.PG_POOL_MAX = '30';
