@@ -1,4 +1,6 @@
 import { Global, Module } from '@nestjs/common';
+import { LedgerTotalsPrismaRepository } from '@/infrastructure/persistence/ledger-totals.prisma.repository.js';
+import { ReportAccountPrismaRepository } from '@/infrastructure/persistence/report-account.prisma.repository.js';
 import { BillingAccountPrismaRepository } from '@/infrastructure/persistence/billing-account.prisma.repository.js';
 import { BillingPlanPrismaRepository } from '@/infrastructure/persistence/billing-plan.prisma.repository.js';
 import { CompanyProfilePrismaRepository } from '@/infrastructure/persistence/company-profile.prisma.repository.js';
@@ -19,6 +21,8 @@ import {
     SERIES_READ_REPOSITORY,
     TITLE_READ_REPOSITORY,
     USER_REPOSITORY,
+    REPORT_ACCOUNT_REPOSITORY,
+    LEDGER_TOTALS_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
 import { SeriesReadPrismaRepository } from '@/infrastructure/persistence/series-read.prisma.repository.js';
@@ -41,6 +45,8 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: SERIES_READ_REPOSITORY, useClass: SeriesReadPrismaRepository },
         { provide: MEMBERSHIP_REPOSITORY, useClass: MembershipPrismaRepository },
         { provide: PLATFORM_ACCESS_REPOSITORY, useClass: PlatformAccessPrismaRepository },
+        { provide: REPORT_ACCOUNT_REPOSITORY, useClass: ReportAccountPrismaRepository },
+        { provide: LEDGER_TOTALS_REPOSITORY, useClass: LedgerTotalsPrismaRepository },
     ],
     exports: [
         USER_REPOSITORY,
@@ -55,6 +61,8 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         SERIES_READ_REPOSITORY,
         MEMBERSHIP_REPOSITORY,
         PLATFORM_ACCESS_REPOSITORY,
+        REPORT_ACCOUNT_REPOSITORY,
+        LEDGER_TOTALS_REPOSITORY,
     ],
 })
 export class PersistenceModule {}

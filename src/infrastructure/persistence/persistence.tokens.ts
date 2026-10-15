@@ -10,3 +10,5 @@ export const LEDGER_UNIT_OF_WORK = Symbol('ILedgerUnitOfWork');
 export const TITLE_READ_REPOSITORY = Symbol('ITitleReadRepository');
 export const ENTRY_READ_REPOSITORY = Symbol('IEntryReadRepository');
 export const SERIES_READ_REPOSITORY = Symbol('ISeriesReadRepository');
+export const REPORT_ACCOUNT_REPOSITORY = Symbol('IReportAccountRepository');
+export const LEDGER_TOTALS_REPOSITORY = Symbol('ILedgerTotalsRepository');
