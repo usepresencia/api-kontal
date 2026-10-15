@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
+import { CreateManualEntryService } from '@/application/ledger/journal/create-manual-entry.service.js';
 import { GetJournalEntryService } from '@/application/ledger/journal/get-journal-entry.service.js';
 import { ListJournalEntriesService } from '@/application/ledger/journal/list-journal-entries.service.js';
+import { ReverseManualEntryService } from '@/application/ledger/journal/reverse-manual-entry.service.js';
 import { CreateEntryService } from '@/application/ledger/entries/create-entry.service.js';
 import { DeleteEntryService } from '@/application/ledger/entries/delete-entry.service.js';
 import { GetEntryService } from '@/application/ledger/entries/get-entry.service.js';
@@ -62,6 +64,8 @@ import { TitlesController } from '@/presentation/ledger/titles.controller.js';
         ListTitleSeriesService,
         GetJournalEntryService,
         ListJournalEntriesService,
+        CreateManualEntryService,
+        ReverseManualEntryService,
     ],
 })
 export class LedgerModule {}

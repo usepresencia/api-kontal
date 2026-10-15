@@ -36,6 +36,18 @@ export class JournalTxRepository implements IJournalTxRepository {
         return rows.map(toJournalEntity);
     }
 
+    async lock(companyId: string, id: string): Promise<JournalEntryEntity | null> {
+        const rows = await this.client.$queryRaw<{ id: string }[]>`
+            SELECT "id" FROM "JournalEntry" WHERE "id" = ${id} AND "companyId" = ${companyId} FOR UPDATE`;
+        if (rows.length === 0) return null;
+        return toJournalEntity(
+            await this.client.journalEntry.findUniqueOrThrow({
+                where: { id },
+                include: { lines: true },
+            }),
+        );
+    }
+
     async writeAll(entries: readonly JournalEntryEntity[]): Promise<void> {
         if (entries.length === 0) return;
         const data = entries.map(toJournalData);
