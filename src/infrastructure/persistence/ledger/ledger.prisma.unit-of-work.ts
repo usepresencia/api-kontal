@@ -5,8 +5,10 @@ import type {
     ILedgerUnitOfWork,
 } from '@/domain/repositories/ledger.unit-of-work.interface.js';
 import { AccountTxRepository } from '@/infrastructure/persistence/ledger/account.tx.repository.js';
+import { EntryTxRepository } from '@/infrastructure/persistence/ledger/entry.tx.repository.js';
 import { JournalTxRepository } from '@/infrastructure/persistence/ledger/journal.tx.repository.js';
 import { PresetTxRepository } from '@/infrastructure/persistence/ledger/preset.tx.repository.js';
+import { TitleTxRepository } from '@/infrastructure/persistence/ledger/title.tx.repository.js';
 import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 
 const TRANSACTION_TIMEOUT_MS = 20_000;
@@ -18,6 +20,8 @@ export function buildLedgerTx(client: Prisma.TransactionClient): ILedgerTx {
         journal: new JournalTxRepository(client),
         presets: new PresetTxRepository(client),
         accounts: new AccountTxRepository(client),
+        titles: new TitleTxRepository(client),
+        entries: new EntryTxRepository(client),
     };
 }
 
