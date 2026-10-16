@@ -43,7 +43,7 @@ async function prepare() {
         (
             await post(
                 'titles',
-                titleBody(seed.preset.id, {
+                titleBody(seed, {
                     description,
                     amount: '1000.00',
                     issueDate: monthDay(3, day),
@@ -115,7 +115,7 @@ describe('trava de período', () => {
             () =>
                 post(
                     'titles',
-                    titleBody(seed.preset.id, {
+                    titleBody(seed, {
                         issueDate: monthDay(3, 20),
                         expirationDate: isoDay(20),
                     }),
@@ -124,6 +124,7 @@ describe('trava de período', () => {
                 post('title-series', {
                     kind: 'INSTALLMENT',
                     presetId: seed.preset.id,
+                    partyId: seed.party.id,
                     type: 'EXPENSE',
                     description: 'S',
                     amount: '30.00',
@@ -152,7 +153,7 @@ describe('trava de período', () => {
             (
                 await post(
                     'titles',
-                    titleBody(seed.preset.id, {
+                    titleBody(seed, {
                         issueDate: monthDay(2, 1),
                         expirationDate: isoDay(20),
                     }),

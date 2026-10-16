@@ -30,7 +30,7 @@ const create = async (overrides: Record<string, unknown> = {}) =>
     api()
         .post('/api/v1/titles')
         .set(await asAdmin(companyId))
-        .send(titleBody(seed.preset.id, overrides));
+        .send(titleBody(seed, overrides));
 
 describe('POST /titles', () => {
     it('receita: grava o título com as contas do preset e o lançamento D a receber / C receita', async () => {
@@ -102,7 +102,7 @@ describe('POST /titles', () => {
         const res = await api()
             .post('/api/v1/titles')
             .set(await asAdmin(companyId))
-            .send(titleBody(preset.id));
+            .send(titleBody({ preset, party: seed.party }));
         expect(res.status).toBe(400);
         expect(res.body).toMatchObject({ code: 'TITLE_NOT_POSTABLE' });
         expect(await db().title.count()).toBe(0);
@@ -117,7 +117,12 @@ describe('POST /titles', () => {
         const missing = await api()
             .post('/api/v1/titles')
             .set(await asAdmin(companyId))
-            .send(titleBody('3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f'));
+            .send(
+                titleBody({
+                    preset: { id: '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f' },
+                    party: seed.party,
+                }),
+            );
         expect(missing.status).toBe(404);
         expect(missing.body).toMatchObject({ code: 'PRESET_NOT_FOUND' });
     });
@@ -212,6 +217,7 @@ describe('PUT /titles/:id', () => {
                 type: 'INCOME',
                 amount: '1000.00',
                 presetId: seed.preset.id,
+                partyId: seed.party.id,
                 issueDate: isoDay(-10),
             })
             .expect(200);

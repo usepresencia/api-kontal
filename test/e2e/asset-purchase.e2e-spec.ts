@@ -47,7 +47,7 @@ const purchase = (overrides: Record<string, unknown> = {}) =>
         .post('/api/v1/titles')
         .set(headers)
         .send(
-            titleBody(seed.preset.id, {
+            titleBody(seed, {
                 type: 'EXPENSE',
                 description: 'Máquina',
                 amount: '5000.00',
@@ -112,7 +112,7 @@ describe('compra de ativo: título a pagar com conta de destino', () => {
         const res = await api()
             .post('/api/v1/titles')
             .set(headers)
-            .send(titleBody(seed.preset.id, { type: 'EXPENSE', issueDate: isoDay(-3) }));
+            .send(titleBody(seed, { type: 'EXPENSE', issueDate: isoDay(-3) }));
         expect(res.status).toBe(201);
         expect(res.body.resultAccountId).toBe(seed.accounts.expense);
     });
@@ -178,6 +178,7 @@ describe('compra de ativo parcelada e recorrente', () => {
             .send({
                 kind: 'INSTALLMENT',
                 presetId: seed.preset.id,
+                partyId: seed.party.id,
                 type: 'EXPENSE',
                 description: 'Máquina parcelada',
                 amount: '3000.00',
@@ -207,6 +208,7 @@ describe('compra de ativo parcelada e recorrente', () => {
             .send({
                 kind: 'RECURRING',
                 presetId: seed.preset.id,
+                partyId: seed.party.id,
                 type: 'EXPENSE',
                 description: 'Leasing',
                 amount: '100.00',
@@ -236,6 +238,7 @@ describe('compra de ativo parcelada e recorrente', () => {
             .send({
                 kind: 'INSTALLMENT',
                 presetId: seed.preset.id,
+                partyId: seed.party.id,
                 type: 'INCOME',
                 description: 'Venda',
                 amount: '30.00',

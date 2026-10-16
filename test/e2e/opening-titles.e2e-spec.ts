@@ -44,7 +44,7 @@ const openingTitle = (overrides: Record<string, unknown> = {}) =>
         .post('/api/v1/titles')
         .set(headers)
         .send(
-            titleBody(seed.preset.id, {
+            titleBody(seed, {
                 description: 'Cliente antigo',
                 amount: '1000.00',
                 issueDate: isoDay(-90),
@@ -177,7 +177,7 @@ describe('implantação de títulos em aberto', () => {
     });
 
     it('título comum segue sem implantação', async () => {
-        const res = await api().post('/api/v1/titles').set(headers).send(titleBody(seed.preset.id));
+        const res = await api().post('/api/v1/titles').set(headers).send(titleBody(seed));
         expect(res.status).toBe(201);
         expect(res.body).toMatchObject({ isOpening: false, openingDate: null });
     });

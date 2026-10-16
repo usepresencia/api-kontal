@@ -81,6 +81,7 @@ describe('isolamento entre empresas no bloco 5', () => {
             .set(headersA)
             .send({
                 presetId: a.preset.id,
+                partyId: a.party.id,
                 type: 'EXPENSE',
                 description: 'Máquina',
                 amount: '10.00',

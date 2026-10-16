@@ -21,7 +21,7 @@ beforeEach(async () => {
         await api()
             .post('/api/v1/titles')
             .set(await asB())
-            .send(titleBody(b.preset.id))
+            .send(titleBody(b))
             .expect(201)
     ).body;
     entryB = (
@@ -43,6 +43,7 @@ beforeEach(async () => {
             .send({
                 kind: 'RECURRING',
                 presetId: b.preset.id,
+                partyId: b.party.id,
                 type: 'EXPENSE',
                 description: 'Aluguel',
                 amount: '10.00',
@@ -180,7 +181,7 @@ describe('contas e presets de B usados no contexto de A', () => {
         const res = await api()
             .post('/api/v1/titles')
             .set(await asA())
-            .send(titleBody(b.preset.id))
+            .send(titleBody({ preset: b.preset, party: a.party }))
             .expect(404);
         expect(res.body).toMatchObject({ code: 'PRESET_NOT_FOUND' });
         expect(await db().title.count({ where: { companyId: A } })).toBe(0);
@@ -217,7 +218,7 @@ describe('contas e presets de B usados no contexto de A', () => {
             await api()
                 .post('/api/v1/titles')
                 .set(await asA())
-                .send(titleBody(a.preset.id))
+                .send(titleBody(a))
                 .expect(201)
         ).body;
         const res = await api()

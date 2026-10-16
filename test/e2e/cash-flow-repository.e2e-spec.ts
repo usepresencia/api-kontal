@@ -13,6 +13,7 @@ async function seed(name: string) {
             data: {
                 companyId: ledger.company.id,
                 presetId: ledger.preset.id,
+                partyId: ledger.party.id,
                 controlAccountId:
                     type === 'INCOME' ? ledger.accounts.receivable : ledger.accounts.payable,
                 resultAccountId:

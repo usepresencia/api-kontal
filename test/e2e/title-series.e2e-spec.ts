@@ -28,6 +28,7 @@ beforeEach(async () => {
 const seriesBody = (overrides: Record<string, unknown> = {}) => ({
     kind: 'INSTALLMENT',
     presetId: seed.preset.id,
+    partyId: seed.party.id,
     type: 'INCOME',
     description: 'Venda',
     amount: '100.00',

@@ -221,7 +221,7 @@ describe('GET, PUT e DELETE /presets', () => {
         await api()
             .post('/api/v1/titles')
             .set(await asAdmin(companyId))
-            .send(titleBody(seed.preset.id))
+            .send(titleBody(seed))
             .expect(201);
         const blocked = await api()
             .delete(`/api/v1/presets/${seed.preset.id}`)
