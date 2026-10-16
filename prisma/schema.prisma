@@ -154,6 +154,7 @@ model Company {
   titleSeries    TitleSeries[]
   journalEntries JournalEntry[]
   periodClosings PeriodClosing[]
+  parties        Party[]
 
   @@index([isActive, name])
 }
@@ -249,6 +250,41 @@ model BillingAccount {
   @@index([billingPlanId, nature])
 }
 
+enum PartyKind {
+  CLIENT
+  SUPPLIER
+  BOTH
+}
+
+model Party {
+  id              String    @id @default(uuid())
+  companyId       String
+  kind            PartyKind
+  name            String
+  socialReason    String
+  document        String
+  email           String    @default("")
+  phone           String    @default("")
+  zipCode         String?
+  street          String?
+  number          String?
+  complement      String?
+  neighborhood    String?
+  city            String?
+  state           String?
+  isActive        Boolean   @default(true)
+  defaultPresetId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  defaultPreset   Preset?   @relation(fields: [defaultPresetId], references: [id], onDelete: Restrict)
+  titles          Title[]
+
+  @@unique([companyId, document])
+  @@index([companyId, kind, isActive])
+  @@index([defaultPresetId])
+}
+
 model Preset {
   id            String          @id @default(uuid())
   billingPlanId String
@@ -260,6 +296,7 @@ model Preset {
   billingPlan   BillingPlan     @relation(fields: [billingPlanId], references: [id], onDelete: Restrict)
   accounts      PresetAccount[]
   titles        Title[]
+  parties       Party[]
 
   @@index([billingPlanId, isActive])
 }
@@ -296,6 +333,7 @@ model Title {
   id                    String         @id @default(uuid())
   companyId             String
   presetId              String
+  partyId               String
   controlAccountId      String
   resultAccountId       String
   seriesId              String?
@@ -314,6 +352,7 @@ model Title {
   updatedAt             DateTime       @updatedAt
   company               Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
   preset                Preset         @relation(fields: [presetId], references: [id], onDelete: Restrict)
+  party                 Party          @relation(fields: [partyId], references: [id], onDelete: Restrict)
   controlAccount        BillingAccount @relation("TitleControlAccount", fields: [controlAccountId], references: [id], onDelete: Restrict)
   resultAccount         BillingAccount @relation("TitleResultAccount", fields: [resultAccountId], references: [id], onDelete: Restrict)
   series                TitleSeries?   @relation(fields: [seriesId], references: [id], onDelete: Restrict)
@@ -323,6 +362,7 @@ model Title {
   @@index([companyId, status, expirationDate])
   @@index([companyId, type])
   @@index([presetId])
+  @@index([partyId])
   @@index([seriesId])
   @@index([controlAccountId])
   @@index([resultAccountId])

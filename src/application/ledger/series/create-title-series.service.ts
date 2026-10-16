@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { resolveDestination } from '@/application/ledger/destination-account.js';
+import { resolvePartyPreset } from '@/application/ledger/resolve-party-preset.js';
 import { creationJournal } from '@/application/ledger/journal-builder.js';
 import type { IClock } from '@/domain/clock.js';
 import { SeriesEntity } from '@/domain/entities/series.entity.js';
@@ -22,7 +23,9 @@ import { CLOCK } from '@/infrastructure/time/time.tokens.js';
 
 export interface CreateTitleSeriesInput {
     kind: SeriesKind;
-    presetId: string;
+    partyId: string;
+    /** Preset dos títulos; sem ele vale o preset padrão da contraparte. */
+    presetId?: string;
     type: TitleType;
     description: string;
     amount: Cents;
@@ -50,16 +53,13 @@ export class CreateTitleSeriesService {
     /**
      * Gera a série (parcelado ou recorrente): os títulos e seus lançamentos de criação, em lote,
      * na mesma transação.
-     * @throws DomainError PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE, SERIES_INVALID,
+     * @throws DomainError PARTY_NOT_FOUND, PARTY_INACTIVE, PARTY_KIND_MISMATCH,
+     *   PARTY_PRESET_REQUIRED, PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE, SERIES_INVALID,
      *   SERIES_LIMIT_EXCEEDED
      */
     execute(companyId: string, input: CreateTitleSeriesInput): Promise<SeriesResult> {
         return this.uow.run(async tx => {
-            const preset = await tx.presets.find(companyId, input.presetId);
-            if (!preset) throw new DomainError(ErrorCode.PRESET_NOT_FOUND, 'Preset não encontrado');
-            if (!preset.isActive) {
-                throw new DomainError(ErrorCode.PRESET_INACTIVE, 'O preset está inativo');
-            }
+            const { party, preset } = await resolvePartyPreset(tx, companyId, input);
             const destination = await resolveDestination(
                 tx,
                 companyId,
@@ -87,6 +87,7 @@ export class CreateTitleSeriesService {
                     id: randomUUID(),
                     companyId,
                     presetId: preset.id,
+                    partyId: party.id,
                     accounts,
                     type: input.type,
                     description: item.description,

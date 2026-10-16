@@ -15,7 +15,8 @@ export const feesSchema = z
     .refine(value => Math.round(value * 100) / 100 === value, 'Use até 2 casas decimais');
 
 export const createTitleSchema = z.object({
-    presetId: z.uuid(),
+    partyId: z.uuid(),
+    presetId: z.uuid().optional(),
     type: z.enum(TitleType),
     description: text,
     amount: moneySchema,
@@ -54,6 +55,7 @@ export const listTitlesQuerySchema = pageQuerySchema.extend({
     type: z.enum(TitleType).optional(),
     status: z.enum(TitleStatus).optional(),
     presetId: z.uuid().optional(),
+    partyId: z.uuid().optional(),
     seriesId: z.uuid().optional(),
     dueFrom: isoDateSchema.optional(),
     dueTo: isoDateSchema.optional(),

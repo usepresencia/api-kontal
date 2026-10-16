@@ -9,11 +9,14 @@ import type {
 import { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 import { toTitleEntity } from '@/infrastructure/persistence/title.prisma.mapper.js';
 
-const TITLE_REFS = { preset: { select: { name: true } } } as const;
+const TITLE_REFS = {
+    preset: { select: { name: true } },
+    party: { select: { name: true } },
+} as const;
 type TitleWithRefs = Prisma.TitleGetPayload<{ include: typeof TITLE_REFS }>;
 
 function toView(row: TitleWithRefs): TitleView {
-    return { title: toTitleEntity(row), presetName: row.preset.name };
+    return { title: toTitleEntity(row), presetName: row.preset.name, partyName: row.party.name };
 }
 
 function dueRange(filter: TitleFilter) {
@@ -49,6 +52,7 @@ export class TitleReadPrismaRepository implements ITitleReadRepository {
             ...(filter.type ? { type: filter.type } : {}),
             ...(filter.status ? { status: filter.status } : {}),
             ...(filter.presetId ? { presetId: filter.presetId } : {}),
+            ...(filter.partyId ? { partyId: filter.partyId } : {}),
             ...(filter.seriesId ? { seriesId: filter.seriesId } : {}),
             ...dueRange(filter),
         };

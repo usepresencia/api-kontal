@@ -6,6 +6,7 @@ export const COMPANY_PROFILE_REPOSITORY = Symbol('ICompanyProfileRepository');
 export const BILLING_PLAN_REPOSITORY = Symbol('IBillingPlanRepository');
 export const BILLING_ACCOUNT_REPOSITORY = Symbol('IBillingAccountRepository');
 export const PRESET_REPOSITORY = Symbol('IPresetRepository');
+export const PARTY_REPOSITORY = Symbol('IPartyRepository');
 export const LEDGER_UNIT_OF_WORK = Symbol('ILedgerUnitOfWork');
 export const TITLE_READ_REPOSITORY = Symbol('ITitleReadRepository');
 export const ENTRY_READ_REPOSITORY = Symbol('IEntryReadRepository');

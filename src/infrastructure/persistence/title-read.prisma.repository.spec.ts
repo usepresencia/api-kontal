@@ -22,8 +22,9 @@ const row = {
     createdAt: day,
     updatedAt: day,
     preset: { name: 'Venda de serviços' },
+    party: { name: 'Copel' },
 };
-const include = { preset: { select: { name: true } } };
+const include = { preset: { select: { name: true } }, party: { select: { name: true } } };
 
 function makeRepo() {
     const title = { findFirst: vi.fn(), findMany: vi.fn(), count: vi.fn() };
@@ -44,7 +45,7 @@ describe('TitleReadPrismaRepository', () => {
             include,
             relationLoadStrategy: 'join',
         });
-        expect(view).toMatchObject({ presetName: 'Venda de serviços' });
+        expect(view).toMatchObject({ presetName: 'Venda de serviços', partyName: 'Copel' });
         expect(view?.title.amount).toBe(10000);
     });
 
@@ -62,7 +63,15 @@ describe('TitleReadPrismaRepository', () => {
         const dueTo = new Date('2026-10-31T00:00:00.000Z');
         const page = await repo.list(
             'c1',
-            { type: 'INCOME', status: 'OPEN', presetId: 'pr1', seriesId: 's1', dueFrom, dueTo },
+            {
+                type: 'INCOME',
+                status: 'OPEN',
+                presetId: 'pr1',
+                partyId: 'pt1',
+                seriesId: 's1',
+                dueFrom,
+                dueTo,
+            },
             { page: 3, pageSize: 10 },
         );
         const where = {
@@ -70,6 +79,7 @@ describe('TitleReadPrismaRepository', () => {
             type: 'INCOME',
             status: 'OPEN',
             presetId: 'pr1',
+            partyId: 'pt1',
             seriesId: 's1',
             expirationDate: { gte: dueFrom, lte: dueTo },
         };

@@ -3,6 +3,7 @@ import type { AccountRef } from '@/domain/billing/account-ref.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { EntryEntity, type EntryRow } from '@/domain/entities/entry.entity.js';
 import { JournalEntryEntity, type JournalLine } from '@/domain/entities/journal-entry.entity.js';
+import { PartyEntity } from '@/domain/entities/party.entity.js';
 import { PresetEntity } from '@/domain/entities/preset.entity.js';
 import { TitleEntity, type TitleRow } from '@/domain/entities/title.entity.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
@@ -56,6 +57,7 @@ export function fakeTx() {
             earliestDate: vi.fn(),
         },
         presets: { find: vi.fn() },
+        parties: { find: vi.fn().mockResolvedValue(partyFixture) },
         accounts: { findRefs: vi.fn(), controlAccountIds: vi.fn() },
         titles: {
             lock: vi.fn(),
@@ -98,6 +100,20 @@ export function fakeUow(tx = fakeTx()) {
     } as unknown as ILedgerUnitOfWork;
     return { uow, tx };
 }
+
+/** Fornecedor e cliente ao mesmo tempo, ativo, com o preset `pr1` como padrão. */
+export const partyFixture = PartyEntity.create({
+    id: 'pt1',
+    companyId: 'c1',
+    kind: 'BOTH',
+    name: 'Copel',
+    socialReason: 'Companhia Paranaense de Energia',
+    document: '11.222.333/0001-81',
+    email: 'financeiro@copel.com',
+    phone: '4133333333',
+    address: null,
+    defaultPresetId: 'pr1',
+});
 
 export const presetFixture = PresetEntity.create({
     id: 'pr1',

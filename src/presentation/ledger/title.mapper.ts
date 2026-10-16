@@ -3,11 +3,17 @@ import { formatMoney } from '@/domain/money.js';
 import { toIsoDate } from '@/presentation/common/iso-date.js';
 
 /** Resposta da API para um título: valores em texto, datas YYYY-MM-DD e saldo em aberto. */
-export function toTitleResponse(title: TitleEntity, presetName: string | null) {
+export function toTitleResponse(
+    title: TitleEntity,
+    presetName: string | null,
+    partyName: string | null,
+) {
     return {
         id: title.id,
         presetId: title.presetId,
         presetName,
+        partyId: title.partyId,
+        partyName,
         controlAccountId: title.controlAccountId,
         resultAccountId: title.resultAccountId,
         seriesId: title.seriesId,

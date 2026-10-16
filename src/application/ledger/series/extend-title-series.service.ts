@@ -46,6 +46,7 @@ export class ExtendTitleSeriesService {
                     id: randomUUID(),
                     companyId,
                     presetId: last.presetId,
+                    partyId: last.partyId,
                     accounts: {
                         controlAccountId: last.controlAccountId,
                         resultAccountId: last.resultAccountId,

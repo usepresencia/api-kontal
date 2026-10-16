@@ -10,7 +10,8 @@ const count = z.number().int().min(1);
 
 export const createSeriesSchema = z.object({
     kind: z.enum(SeriesKind),
-    presetId: z.uuid(),
+    partyId: z.uuid(),
+    presetId: z.uuid().optional(),
     type: z.enum(TitleType),
     description: z.string().trim().min(1).max(255),
     amount: moneySchema,

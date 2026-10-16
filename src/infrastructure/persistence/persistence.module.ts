@@ -22,6 +22,7 @@ import {
     LEDGER_UNIT_OF_WORK,
     MEMBERSHIP_REPOSITORY,
     PLATFORM_ACCESS_REPOSITORY,
+    PARTY_REPOSITORY,
     PRESET_REPOSITORY,
     SERIES_READ_REPOSITORY,
     TITLE_READ_REPOSITORY,
@@ -34,6 +35,7 @@ import {
     CASH_FLOW_REPOSITORY,
     PERIOD_CLOSING_READ_REPOSITORY,
 } from '@/infrastructure/persistence/persistence.tokens.js';
+import { PartyPrismaRepository } from '@/infrastructure/persistence/party.prisma.repository.js';
 import { PresetPrismaRepository } from '@/infrastructure/persistence/preset.prisma.repository.js';
 import { SeriesReadPrismaRepository } from '@/infrastructure/persistence/series-read.prisma.repository.js';
 import { TitleReadPrismaRepository } from '@/infrastructure/persistence/title-read.prisma.repository.js';
@@ -49,6 +51,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: BILLING_PLAN_REPOSITORY, useClass: BillingPlanPrismaRepository },
         { provide: BILLING_ACCOUNT_REPOSITORY, useClass: BillingAccountPrismaRepository },
         { provide: PRESET_REPOSITORY, useClass: PresetPrismaRepository },
+        { provide: PARTY_REPOSITORY, useClass: PartyPrismaRepository },
         { provide: LEDGER_UNIT_OF_WORK, useClass: LedgerPrismaUnitOfWork },
         { provide: TITLE_READ_REPOSITORY, useClass: TitleReadPrismaRepository },
         { provide: ENTRY_READ_REPOSITORY, useClass: EntryReadPrismaRepository },
@@ -70,6 +73,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         BILLING_PLAN_REPOSITORY,
         BILLING_ACCOUNT_REPOSITORY,
         PRESET_REPOSITORY,
+        PARTY_REPOSITORY,
         LEDGER_UNIT_OF_WORK,
         TITLE_READ_REPOSITORY,
         ENTRY_READ_REPOSITORY,
