@@ -72,6 +72,22 @@ interfaces de repositório; TypeScript puro), `application` (services),
 - **Regime:** competência pelo razão; todo relatório é de um plano (`billingPlanId`, opcional quando a
   empresa tem um só). Os testes e2e conferem a conciliação entre os relatórios.
 
+## Caixa, gerencial, ativo, implantação e fechamento
+
+- **Fluxo de caixa** (`GET /api/v1/reports/cash-flow`): entradas e saídas realizadas (baixas de pagamento, pelo
+  valor realmente pago) por conta financeira, com `groupBy=month` ou `groupBy=day` (este com os pagamentos de
+  cada dia). `GET /api/v1/entries` aceita `paidFrom`, `paidTo`, `titleType` e `billingAccountId`.
+- **DRE gerencial** (`GET /api/v1/reports/management-dre`): custos variáveis, margem de contribuição, custos
+  fixos, depreciação e resultado, fechando com o DRE contábil. Cada conta de despesa pode ter
+  `costBehavior` (`VARIABLE`, `FIXED` ou `DEPRECIATION`); sem ele vale o padrão da categoria do DRE.
+- **Compra de ativo:** `destinationAccountId` em títulos e séries a pagar lança a compra em uma conta de
+  ativo (ou despesa) em vez da despesa do preset; o DRE não muda.
+- **Implantação:** título com `isOpening`, `openingDate` e `settledAmount` lança só o saldo em aberto contra
+  a conta de saldos iniciais (papel `openingBalance` do preset), sem alterar o DRE.
+- **Fechamento de período** (`/api/v1/period-closings`): fecha um mês por vez, em sequência; lançamentos com
+  data fechada respondem 409. O fechamento de dezembro apura o resultado do ano contra a conta de lucros
+  acumulados; `DELETE /period-closings/latest` reabre o último fechamento e estorna a apuração.
+
 ## Como contribuir
 
 Usamos [Commitizen](https://commitizen.github.io/cz-cli/) e
