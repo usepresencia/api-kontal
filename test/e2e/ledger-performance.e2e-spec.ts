@@ -21,6 +21,7 @@ async function addTitles(count: number, startAt: number) {
     const base = {
         companyId: seed.company.id,
         presetId: seed.preset.id,
+        partyId: seed.party.id,
         controlAccountId: seed.accounts.receivable,
         resultAccountId: seed.accounts.revenue,
         type: 'INCOME' as const,
@@ -122,6 +123,7 @@ describe('sem N+1: o número de queries não cresce com o número de linhas', ()
                     .send({
                         kind: 'RECURRING',
                         presetId: seed.preset.id,
+                        partyId: seed.party.id,
                         type: 'EXPENSE',
                         description: 'Aluguel',
                         amount: '10.00',

@@ -1,6 +1,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { resolveDestination } from '@/application/ledger/destination-account.js';
+import { resolvePartyPreset } from '@/application/ledger/resolve-party-preset.js';
 import { creationJournal } from '@/application/ledger/journal-builder.js';
 import type { IClock } from '@/domain/clock.js';
 import type { PresetEntity } from '@/domain/entities/preset.entity.js';
@@ -17,7 +18,9 @@ import { LEDGER_UNIT_OF_WORK } from '@/infrastructure/persistence/persistence.to
 import { CLOCK } from '@/infrastructure/time/time.tokens.js';
 
 export interface CreateTitleInput {
-    presetId: string;
+    partyId: string;
+    /** Preset do título; sem ele vale o preset padrão da contraparte. */
+    presetId?: string;
     type: TitleType;
     description: string;
     amount: Cents;
@@ -39,16 +42,13 @@ export class CreateTitleService {
 
     /**
      * Cria o título com as contas do preset e grava o lançamento de criação na mesma transação.
-     * @throws DomainError PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE,
+     * @throws DomainError PARTY_NOT_FOUND, PARTY_INACTIVE, PARTY_KIND_MISMATCH,
+     *   PARTY_PRESET_REQUIRED, PRESET_NOT_FOUND, PRESET_INACTIVE, TITLE_NOT_POSTABLE,
      *   DESTINATION_ACCOUNT_INVALID, OPENING_TITLE_INVALID
      */
     execute(companyId: string, input: CreateTitleInput): Promise<TitleView> {
         return this.uow.run(async tx => {
-            const preset = await tx.presets.find(companyId, input.presetId);
-            if (!preset) throw new DomainError(ErrorCode.PRESET_NOT_FOUND, 'Preset não encontrado');
-            if (!preset.isActive) {
-                throw new DomainError(ErrorCode.PRESET_INACTIVE, 'O preset está inativo');
-            }
+            const { party, preset } = await resolvePartyPreset(tx, companyId, input);
             const today = this.clock.today();
             const opening = resolveOpening(input, {
                 amount: input.amount,
@@ -68,6 +68,7 @@ export class CreateTitleService {
                 id: randomUUID(),
                 companyId,
                 presetId: preset.id,
+                partyId: party.id,
                 accounts: resolveTitleAccounts(input.type, preset.accounts, resultOverride),
                 type: input.type,
                 description: input.description,
@@ -80,7 +81,7 @@ export class CreateTitleService {
             });
             await tx.titles.insertAll([title]);
             await tx.journal.writeAll([creationJournal(title)]);
-            return { title, presetName: preset.name };
+            return { title, presetName: preset.name, partyName: party.name };
         });
     }
 

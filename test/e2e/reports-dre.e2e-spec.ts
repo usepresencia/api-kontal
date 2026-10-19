@@ -91,6 +91,7 @@ describe('GET /reports/dre', () => {
                 .set(headers)
                 .send({
                     presetId: seed.preset.id,
+                    partyId: seed.party.id,
                     type: 'EXPENSE',
                     description: 'Aluguel',
                     amount: '80.00',

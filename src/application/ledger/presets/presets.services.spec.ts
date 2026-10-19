@@ -154,7 +154,8 @@ describe('UpdatePresetService', () => {
 });
 
 describe('DeletePresetService', () => {
-    const service = new DeletePresetService(presets);
+    const parties = { presetInUse: vi.fn().mockResolvedValue(false) };
+    const service = new DeletePresetService(presets, parties as never);
 
     it('exclui o preset sem títulos', async () => {
         presets.isInUse.mockResolvedValue(false);
@@ -164,6 +165,13 @@ describe('DeletePresetService', () => {
 
     it('preset em uso lança PRESET_IN_USE', async () => {
         presets.isInUse.mockResolvedValue(true);
+        await expect(service.execute('c1', 'pr1')).rejects.toMatchObject({ code: 'PRESET_IN_USE' });
+        expect(presets.delete).not.toHaveBeenCalled();
+    });
+
+    it('preset padrão de uma contraparte lança PRESET_IN_USE', async () => {
+        presets.isInUse.mockResolvedValue(false);
+        parties.presetInUse.mockResolvedValueOnce(true);
         await expect(service.execute('c1', 'pr1')).rejects.toMatchObject({ code: 'PRESET_IN_USE' });
         expect(presets.delete).not.toHaveBeenCalled();
     });

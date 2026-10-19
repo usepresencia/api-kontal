@@ -30,9 +30,10 @@ export const createBillingAccountSchema = z.object({
 
 export type CreateBillingAccountBody = z.infer<typeof createBillingAccountSchema>;
 
-/** Só nome, status, tipo e categorias mudam; ao menos um campo é obrigatório. */
+/** Nome, status, tipo, categorias e o pai mudam; ao menos um campo é obrigatório. */
 export const updateBillingAccountSchema = z
     .object({
+        parentId: z.uuid().nullable().optional(),
         name: name.optional(),
         isActive: z.boolean().optional(),
         accountType: z.enum(AccountType).optional(),

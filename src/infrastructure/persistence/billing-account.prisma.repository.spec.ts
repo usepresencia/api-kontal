@@ -1,3 +1,4 @@
+import { accountFixture } from '@test/support/billing-fakes.js';
 import { AccountNature } from '@/domain/billing/account-nature.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import { BillingAccountEntity } from '@/domain/entities/billing-account.entity.js';
@@ -355,5 +356,103 @@ describe('BillingAccountPrismaRepository.findRefsByIds', () => {
         const { repo, billingAccount } = makeRepo();
         await expect(repo.findRefsByIds('c1', [])).resolves.toEqual([]);
         expect(billingAccount.findMany).not.toHaveBeenCalled();
+    });
+});
+
+describe('BillingAccountPrismaRepository.moveWithRecode', () => {
+    const fields = accountFixture({ id: 'a1' });
+    const row = (id: string, code: string, level: number, parentId: string | null = null) => ({
+        id,
+        billingPlanId: 'p1',
+        parentId,
+        name: id,
+        accountType: 'SYNTHETIC',
+        nature: 'ASSET',
+        dreCategory: null,
+        balanceCategory: null,
+        costBehavior: null,
+        isActive: true,
+        code,
+        sortKey: code,
+        level,
+        createdAt: new Date('2026-01-01'),
+    });
+
+    function makeMoveRepo() {
+        const model = {
+            findFirst: vi.fn(),
+            findMany: vi.fn(),
+            update: vi.fn(),
+            updateMany: vi.fn(),
+        };
+        const tx = { billingAccount: model, $queryRaw: vi.fn().mockResolvedValue([]) };
+        const prisma = {
+            $transaction: vi.fn(async (fn: (client: typeof tx) => Promise<unknown>) => fn(tx)),
+        };
+        return { model, tx, repo: new BillingAccountPrismaRepository(prisma as never) };
+    }
+
+    it('trava o plano, lê conta, novo pai, filhas e irmãs e grava os novos códigos', async () => {
+        const { model, tx, repo } = makeMoveRepo();
+        model.findFirst
+            .mockResolvedValueOnce(row('a1', '1.1', 2, 'old'))
+            .mockResolvedValueOnce(row('new', '1.2', 2));
+        model.findMany
+            .mockResolvedValueOnce([row('c1', '1.1.1', 3, 'a1')])
+            .mockResolvedValueOnce([{ code: '1.2.1' }]);
+        const plan = vi.fn().mockReturnValue([
+            { id: 'a1', code: '1.2.2', level: 3 },
+            { id: 'c1', code: '1.2.2.001', level: 4 },
+        ]);
+
+        await repo.moveWithRecode('c1', 'p1', 'a1', 'new', plan, fields);
+
+        expect(tx.$queryRaw).toHaveBeenCalledTimes(1);
+        expect(plan.mock.calls[0][0].siblingCodes).toEqual(['1.2.1']);
+        expect(plan.mock.calls[0][0].descendants.map((item: { id: string }) => item.id)).toEqual([
+            'c1',
+        ]);
+        expect(model.updateMany).toHaveBeenCalledWith(
+            expect.objectContaining({ where: expect.objectContaining({ id: 'a1' }) }),
+        );
+        expect(model.update).toHaveBeenCalledTimes(2);
+        expect(model.update.mock.calls[0][0]).toMatchObject({
+            where: { id: 'a1' },
+            data: { code: '1.2.2', level: 3, parentId: 'new' },
+        });
+        expect(model.update.mock.calls[1][0].data).not.toHaveProperty('parentId');
+    });
+
+    it('conta de outro tenant lança BILLING_ACCOUNT_NOT_FOUND e novo pai fora do plano ACCOUNT_PARENT_INVALID', async () => {
+        const { model, repo } = makeMoveRepo();
+        model.findFirst.mockResolvedValueOnce(null);
+        await expect(
+            repo.moveWithRecode('c1', 'p1', 'x', null, vi.fn(), fields),
+        ).rejects.toMatchObject({
+            code: 'BILLING_ACCOUNT_NOT_FOUND',
+        });
+        model.findFirst.mockResolvedValueOnce(row('a1', '1.1', 2)).mockResolvedValueOnce(null);
+        await expect(
+            repo.moveWithRecode('c1', 'p1', 'a1', 'zzz', vi.fn(), fields),
+        ).rejects.toMatchObject({
+            code: 'ACCOUNT_PARENT_INVALID',
+        });
+    });
+
+    it('colisão de código vira CONFLICT', async () => {
+        const { model, repo } = makeMoveRepo();
+        model.findFirst.mockResolvedValueOnce(row('a1', '1.1', 2));
+        model.findMany.mockResolvedValue([]);
+        model.update.mockRejectedValue(Object.assign(new Error('unique'), { code: 'P2002' }));
+        await expect(
+            repo.moveWithRecode(
+                'c1',
+                'p1',
+                'a1',
+                null,
+                () => [{ id: 'a1', code: '2', level: 1 }],
+                fields,
+            ),
+        ).rejects.toMatchObject({ code: 'CONFLICT' });
     });
 });

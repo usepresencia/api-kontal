@@ -34,6 +34,7 @@ describe('INTERNAL_BILLING (SUPPORT) lê os relatórios novos, mas não fecha, r
                 .set(support)
                 .send({
                     presetId: seed.preset.id,
+                    partyId: seed.party.id,
                     type: 'EXPENSE',
                     description: 'Máquina',
                     amount: '10.00',

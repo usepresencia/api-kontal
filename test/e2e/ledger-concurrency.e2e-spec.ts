@@ -10,11 +10,15 @@ const { api, db } = useTestApp();
 
 describe('baixas simultâneas no mesmo título', () => {
     it('10 pagamentos de 300 em um título de 1000: só 3 cabem, o saldo fica exato e o razão fecha', async () => {
-        const { company, accounts, preset } = await seedLedger(db());
+        const { company, accounts, preset, party } = await seedLedger(db());
         const auth = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         await api().get('/api/v1/auth/me').set(auth).expect(200);
         const title = (
-            await api().post('/api/v1/titles').set(auth).send(titleBody(preset.id)).expect(201)
+            await api()
+                .post('/api/v1/titles')
+                .set(auth)
+                .send(titleBody({ preset, party }))
+                .expect(201)
         ).body;
 
         const results = await Promise.all(
@@ -48,11 +52,15 @@ describe('baixas simultâneas no mesmo título', () => {
     });
 
     it('baixas simultâneas que somam exatamente o valor quitam o título uma única vez', async () => {
-        const { company, accounts, preset } = await seedLedger(db());
+        const { company, accounts, preset, party } = await seedLedger(db());
         const auth = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         await api().get('/api/v1/auth/me').set(auth).expect(200);
         const title = (
-            await api().post('/api/v1/titles').set(auth).send(titleBody(preset.id)).expect(201)
+            await api()
+                .post('/api/v1/titles')
+                .set(auth)
+                .send(titleBody({ preset, party }))
+                .expect(201)
         ).body;
         const results = await Promise.all(
             Array.from({ length: 4 }, () =>

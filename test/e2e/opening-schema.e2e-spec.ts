@@ -6,11 +6,12 @@ const day = (iso: string) => new Date(`${iso}T00:00:00.000Z`);
 
 describe('colunas de implantação do título (Postgres real)', () => {
     async function create(overrides: Record<string, unknown>) {
-        const { company, preset, accounts } = await seedLedger(db());
+        const { company, preset, accounts, party } = await seedLedger(db());
         return db().title.create({
             data: {
                 companyId: company.id,
                 presetId: preset.id,
+                partyId: party.id,
                 controlAccountId: accounts.receivable,
                 resultAccountId: accounts.revenue,
                 type: 'INCOME',

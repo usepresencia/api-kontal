@@ -6,11 +6,15 @@ const { api, db } = useTestApp();
 
 describe('INTERNAL_BILLING (SUPPORT) lê, mas não escreve', () => {
     it('leituras 200 e escritas 403, sem alterar o banco', async () => {
-        const { company, accounts, preset, plan } = await seedLedger(db());
+        const { company, accounts, preset, plan, party } = await seedLedger(db());
         const admin = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         const support = { ...(await bearer('billing')), 'X-Tenant-Id': company.id };
         const title = (
-            await api().post('/api/v1/titles').set(admin).send(titleBody(preset.id)).expect(201)
+            await api()
+                .post('/api/v1/titles')
+                .set(admin)
+                .send(titleBody({ preset, party }))
+                .expect(201)
         ).body;
         const entry = (
             await api()
@@ -31,6 +35,7 @@ describe('INTERNAL_BILLING (SUPPORT) lê, mas não escreve', () => {
                 .send({
                     kind: 'RECURRING',
                     presetId: preset.id,
+                    partyId: party.id,
                     type: 'EXPENSE',
                     description: 'Aluguel',
                     amount: '10.00',
@@ -69,7 +74,7 @@ describe('INTERNAL_BILLING (SUPPORT) lê, mas não escreve', () => {
                 .set(support)
                 .send({ name: 'x', accounts: accountsBody }),
             api().delete(`/api/v1/presets/${preset.id}`).set(support),
-            api().post('/api/v1/titles').set(support).send(titleBody(preset.id)),
+            api().post('/api/v1/titles').set(support).send(titleBody({ preset, party })),
             api().put(`/api/v1/titles/${title.id}`).set(support).send({ description: 'x' }),
             api().delete(`/api/v1/titles/${title.id}`).set(support),
             api().post(`/api/v1/titles/${title.id}/write-off`).set(support).send({}),
@@ -90,6 +95,7 @@ describe('INTERNAL_BILLING (SUPPORT) lê, mas não escreve', () => {
                 .send({
                     kind: 'RECURRING',
                     presetId: preset.id,
+                    partyId: party.id,
                     type: 'EXPENSE',
                     description: 'x',
                     amount: '1.00',

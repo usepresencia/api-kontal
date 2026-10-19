@@ -7,6 +7,7 @@ import {
 
 const uuid = '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f';
 const valid = {
+    partyId: uuid,
     presetId: uuid,
     type: 'INCOME',
     description: ' Venda ',

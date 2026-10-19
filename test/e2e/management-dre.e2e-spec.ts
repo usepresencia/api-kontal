@@ -59,7 +59,7 @@ beforeEach(async () => {
         api()
             .post('/api/v1/titles')
             .set(headers)
-            .send(titleBody(seed.preset.id, { issueDate: isoDay(-5), ...overrides }))
+            .send(titleBody(seed, { issueDate: isoDay(-5), ...overrides }))
             .expect(201);
     await title({ description: 'Venda', amount: '1000.00' });
     await title({ type: 'EXPENSE', description: 'Despesa geral', amount: '200.00' });

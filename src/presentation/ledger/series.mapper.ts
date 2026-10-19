@@ -16,10 +16,10 @@ export function toSeriesResponse(series: SeriesEntity) {
     };
 }
 
-/** Série com os títulos que ela gerou (sem o nome do preset). */
+/** Série com os títulos que ela gerou (sem o nome do preset nem da contraparte). */
 export function toSeriesDetailResponse(series: SeriesEntity, titles: readonly TitleEntity[]) {
     return {
         ...toSeriesResponse(series),
-        titles: titles.map(title => toTitleResponse(title, null)),
+        titles: titles.map(title => toTitleResponse(title, null, null)),
     };
 }

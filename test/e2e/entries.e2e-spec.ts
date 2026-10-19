@@ -32,7 +32,7 @@ const createTitle = async (overrides: Record<string, unknown> = {}) =>
         await api()
             .post('/api/v1/titles')
             .set(await asAdmin(companyId))
-            .send(titleBody(seed.preset.id, overrides))
+            .send(titleBody(seed, overrides))
             .expect(201)
     ).body;
 const pay = async (titleId: string, overrides: Record<string, unknown> = {}) =>
@@ -170,7 +170,7 @@ describe('pagamento com juros, multa e desconto', () => {
             await api()
                 .post('/api/v1/titles')
                 .set(await asAdmin(companyId))
-                .send(titleBody(preset.id))
+                .send(titleBody({ preset, party: seed.party }))
                 .expect(201)
         ).body;
         const res = await pay(title.id, { interestAmount: '10.00' });

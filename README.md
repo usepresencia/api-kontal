@@ -41,8 +41,13 @@ interfaces de repositório; TypeScript puro), `application` (services),
 
 - **Presets** (`/api/v1/presets`): atalho de lançamento com as contas a receber, a pagar, de receita,
   de despesa e as de juros, descontos e perdas. Cada conta é validada pela natureza do papel.
-- **Títulos** (`/api/v1/titles`): a pagar (`EXPENSE`) e a receber (`INCOME`). Tipo, valor, preset e
-  emissão são imutáveis; a criação grava o lançamento de partida dobrada (competência = emissão).
+- **Contrapartes** (`/api/v1/parties`, `X-Tenant-Id`): clientes (`CLIENT`), fornecedores (`SUPPLIER`) ou
+  ambos (`BOTH`) do tenant, com CPF/CNPJ único por empresa, endereço opcional e o preset padrão dos seus
+  títulos. Filtros `kind`, `isActive` e `search`; a exclusão é recusada se há títulos. Escrita só para
+  quem escreve; `INTERNAL_BILLING` lê.
+- **Títulos** (`/api/v1/titles`): a pagar (`EXPENSE`) e a receber (`INCOME`). Todo título tem `partyId`
+  (contraparte do tipo compatível); sem `presetId` vale o preset padrão da contraparte. Tipo, valor,
+  preset e emissão são imutáveis; a criação grava o lançamento de partida dobrada (competência = emissão).
 - **Baixas** (`/api/v1/titles/:id/entries`, `/api/v1/entries`): pagamento com juros, multa e desconto
   (total = principal + juros + multa − desconto) e baixa por perda (`POST /titles/:id/write-off`).
   Excluir uma baixa ou um título posta o estorno; o razão nunca é alterado nem apagado.

@@ -20,10 +20,10 @@ afterEach(async () => {
 
 describe('atomicidade: se o lançamento falha, nada do título ou da baixa é gravado', () => {
     it('criar título', async () => {
-        const { company, preset } = await seedLedger(db());
+        const { company, preset, party } = await seedLedger(db());
         const auth = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         await breakJournal();
-        const res = await api().post('/api/v1/titles').set(auth).send(titleBody(preset.id));
+        const res = await api().post('/api/v1/titles').set(auth).send(titleBody({ preset, party }));
         expect(res.status).toBe(500);
         expect(res.body.code).toBe('INTERNAL_ERROR');
         expect(await db().title.count()).toBe(0);
@@ -31,10 +31,14 @@ describe('atomicidade: se o lançamento falha, nada do título ou da baixa é gr
     });
 
     it('registrar pagamento', async () => {
-        const { company, accounts, preset } = await seedLedger(db());
+        const { company, accounts, preset, party } = await seedLedger(db());
         const auth = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         const title = (
-            await api().post('/api/v1/titles').set(auth).send(titleBody(preset.id)).expect(201)
+            await api()
+                .post('/api/v1/titles')
+                .set(auth)
+                .send(titleBody({ preset, party }))
+                .expect(201)
         ).body;
         await breakJournal();
         const res = await api()
@@ -55,10 +59,14 @@ describe('atomicidade: se o lançamento falha, nada do título ou da baixa é gr
     });
 
     it('excluir título', async () => {
-        const { company, preset } = await seedLedger(db());
+        const { company, preset, party } = await seedLedger(db());
         const auth = { ...(await bearer('admin')), 'X-Tenant-Id': company.id };
         const title = (
-            await api().post('/api/v1/titles').set(auth).send(titleBody(preset.id)).expect(201)
+            await api()
+                .post('/api/v1/titles')
+                .set(auth)
+                .send(titleBody({ preset, party }))
+                .expect(201)
         ).body;
         await breakJournal();
         const res = await api().delete(`/api/v1/titles/${title.id}`).set(auth);

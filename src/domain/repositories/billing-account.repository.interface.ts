@@ -1,3 +1,4 @@
+import type { AccountRecode } from '@/domain/billing/account-move.policy.js';
 import type { AccountRef } from '@/domain/billing/account-ref.js';
 import type {
     BillingAccountEntity,
@@ -10,6 +11,16 @@ export interface BillingAccountWithRefs {
     account: BillingAccountEntity;
     parentName: string | null;
     billingPlanName: string;
+}
+
+/** Dados lidos, já com a trava, para planejar a mudança de posição de uma conta. */
+export interface MoveContext {
+    account: BillingAccountEntity;
+    newParent: BillingAccountEntity | null;
+    /** Todas as contas abaixo da que muda de posição. */
+    descendants: BillingAccountEntity[];
+    /** Códigos das contas que já estão sob o novo pai. */
+    siblingCodes: string[];
 }
 
 export type CodeGenerator = (parentCode: string | null, siblingCodes: readonly string[]) => string;
@@ -31,6 +42,20 @@ export interface IBillingAccountRepository {
         draft: NewBillingAccount,
         nextCode: CodeGenerator,
     ): Promise<BillingAccountWithRefs>;
+    /**
+     * Muda a conta de pai numa transação que trava o plano: `plan` decide o novo código e nível da
+     * conta e das filhas e `fields` traz os demais campos alterados; tudo é gravado de uma vez.
+     * @throws DomainError BILLING_ACCOUNT_NOT_FOUND se a conta sumiu, ACCOUNT_PARENT_INVALID se o novo pai
+     *   não existe no plano, CONFLICT se o código colidir mesmo com a trava
+     */
+    moveWithRecode(
+        companyId: string,
+        planId: string,
+        accountId: string,
+        newParentId: string | null,
+        plan: (context: MoveContext) => AccountRecode[],
+        fields: BillingAccountEntity,
+    ): Promise<void>;
     update(companyId: string, account: BillingAccountEntity): Promise<void>;
     hasChildren(id: string): Promise<boolean>;
     /** Indica se a conta é usada por linha do razão, baixa, preset ou título. */

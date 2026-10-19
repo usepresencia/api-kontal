@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { requireUsableParty } from '@/application/ledger/resolve-party-preset.js';
 import { creationJournal } from '@/application/ledger/journal-builder.js';
 import { requireLockedSeries } from '@/application/ledger/require-series.js';
 import type { SeriesResult } from '@/application/ledger/series/create-title-series.service.js';
@@ -31,6 +32,7 @@ export class ExtendTitleSeriesService {
             if (!last) {
                 throw new DomainError(ErrorCode.INTERNAL_ERROR, 'A série não tem títulos');
             }
+            await requireUsableParty(tx, companyId, last.partyId, last.type);
             const occurrences = buildRecurrences({
                 description: series.baseDescription,
                 amount: last.amount,
@@ -46,6 +48,7 @@ export class ExtendTitleSeriesService {
                     id: randomUUID(),
                     companyId,
                     presetId: last.presetId,
+                    partyId: last.partyId,
                     accounts: {
                         controlAccountId: last.controlAccountId,
                         resultAccountId: last.resultAccountId,

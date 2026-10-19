@@ -2,6 +2,7 @@ import type { AccountRef } from '@/domain/billing/account-ref.js';
 import type { EntryEntity } from '@/domain/entities/entry.entity.js';
 import type { JournalEntryEntity } from '@/domain/entities/journal-entry.entity.js';
 import type { SeriesEntity } from '@/domain/entities/series.entity.js';
+import type { PartyEntity } from '@/domain/entities/party.entity.js';
 import type { PresetEntity } from '@/domain/entities/preset.entity.js';
 import type { TitleEntity } from '@/domain/entities/title.entity.js';
 import type { JournalRefType } from '@/domain/ledger/journal-ref-type.js';
@@ -30,6 +31,11 @@ export interface IJournalTxRepository {
 export interface IPresetTxRepository {
     /** Devolve o preset só se o plano dele pertence à empresa. */
     find(companyId: string, id: string): Promise<PresetEntity | null>;
+}
+
+export interface IPartyTxRepository {
+    /** Devolve a contraparte só se for do tenant. */
+    find(companyId: string, id: string): Promise<PartyEntity | null>;
 }
 
 export interface IAccountTxRepository {
@@ -101,6 +107,7 @@ export interface IPeriodTxRepository {
 export interface ILedgerTx {
     journal: IJournalTxRepository;
     presets: IPresetTxRepository;
+    parties: IPartyTxRepository;
     accounts: IAccountTxRepository;
     titles: ITitleTxRepository;
     entries: IEntryTxRepository;

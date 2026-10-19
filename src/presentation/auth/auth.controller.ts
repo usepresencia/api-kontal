@@ -24,6 +24,8 @@ export class AuthController {
             firebaseUid: user.firebaseUid,
             email: user.email,
             name: user.name,
+            isPlatformUser: user.isPlatformUser,
+            platformRole: user.platformRole ?? null,
         };
     }
 

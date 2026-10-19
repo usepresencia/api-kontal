@@ -144,7 +144,7 @@ export async function runReportScenario(
             await api()
                 .post('/api/v1/titles')
                 .set(headers)
-                .send(titleBody(seed.preset.id, overrides))
+                .send(titleBody(seed, overrides))
                 .expect(201)
         ).body;
     const pay = async (titleId: string, body: Record<string, unknown>) =>

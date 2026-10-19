@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
+import type { AccountRecode } from '@/domain/billing/account-move.policy.js';
 import type { AccountRef } from '@/domain/billing/account-ref.js';
 import { toSortKey } from '@/domain/billing/account-code.js';
 import {
@@ -13,6 +14,7 @@ import type {
     BillingAccountWithRefs,
     CodeGenerator,
     IBillingAccountRepository,
+    MoveContext,
 } from '@/domain/repositories/billing-account.repository.interface.js';
 import {
     ACCOUNT_REFS,
@@ -66,6 +68,94 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
                     relationLoadStrategy: 'join',
                 });
                 return toAccountView(row);
+            });
+        } catch (err) {
+            if (isUniqueConstraintError(err)) {
+                throw new DomainError(
+                    ErrorCode.CONFLICT,
+                    'Conflito ao gerar o código da conta; tente novamente',
+                );
+            }
+            throw err;
+        }
+    }
+
+    async moveWithRecode(
+        companyId: string,
+        planId: string,
+        accountId: string,
+        newParentId: string | null,
+        plan: (context: MoveContext) => AccountRecode[],
+        fields: BillingAccountEntity,
+    ): Promise<void> {
+        try {
+            await this.prisma.$transaction(async tx => {
+                await tx.$queryRaw`SELECT "id" FROM "BillingPlan" WHERE "id" = ${planId} FOR UPDATE`;
+                const accountRow = await tx.billingAccount.findFirst({
+                    where: { id: accountId, billingPlanId: planId, billingPlan: { companyId } },
+                });
+                if (!accountRow) {
+                    throw new DomainError(
+                        ErrorCode.BILLING_ACCOUNT_NOT_FOUND,
+                        'Conta não encontrada',
+                    );
+                }
+                const parentRow = newParentId
+                    ? await tx.billingAccount.findFirst({
+                          where: { id: newParentId, billingPlanId: planId },
+                      })
+                    : null;
+                if (newParentId && !parentRow) {
+                    throw new DomainError(
+                        ErrorCode.ACCOUNT_PARENT_INVALID,
+                        'A conta pai não existe neste plano',
+                    );
+                }
+                const [descendants, siblings] = await Promise.all([
+                    tx.billingAccount.findMany({
+                        where: {
+                            billingPlanId: planId,
+                            code: { startsWith: `${accountRow.code}.` },
+                        },
+                        orderBy: { sortKey: 'asc' },
+                    }),
+                    tx.billingAccount.findMany({
+                        where: {
+                            billingPlanId: planId,
+                            parentId: newParentId,
+                            id: { not: accountId },
+                        },
+                        select: { code: true },
+                    }),
+                ]);
+                const changes = plan({
+                    account: BillingAccountEntity.fromPersistence(accountRow),
+                    newParent: parentRow ? BillingAccountEntity.fromPersistence(parentRow) : null,
+                    descendants: descendants.map(row => BillingAccountEntity.fromPersistence(row)),
+                    siblingCodes: siblings.map(sibling => sibling.code),
+                });
+                await tx.billingAccount.updateMany({
+                    where: { id: fields.id, billingPlan: { companyId } },
+                    data: {
+                        name: fields.name,
+                        isActive: fields.isActive,
+                        accountType: fields.accountType,
+                        dreCategory: fields.dreCategory,
+                        balanceCategory: fields.balanceCategory,
+                        costBehavior: fields.costBehavior,
+                    },
+                });
+                for (const change of changes) {
+                    await tx.billingAccount.update({
+                        where: { id: change.id },
+                        data: {
+                            code: change.code,
+                            sortKey: toSortKey(change.code),
+                            level: change.level,
+                            ...(change.id === accountId ? { parentId: newParentId } : {}),
+                        },
+                    });
+                }
             });
         } catch (err) {
             if (isUniqueConstraintError(err)) {
@@ -176,15 +266,14 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
         return rows.map(toAccountView);
     }
 
-    /** Trava o pai (ou o plano, para raiz) e devolve o código do pai. */
+    /** Trava o plano e o pai (quando há) e devolve o código do pai. */
     private async lockAndReadParentCode(
         tx: Prisma.TransactionClient,
         draft: NewBillingAccount,
     ): Promise<string | null> {
-        if (!draft.parentId) {
-            await tx.$queryRaw`SELECT "id" FROM "BillingPlan" WHERE "id" = ${draft.billingPlanId} FOR UPDATE`;
-            return null;
-        }
+        // A mesma trava do plano que `moveWithRecode` usa: criar e mover contas não se cruzam.
+        await tx.$queryRaw`SELECT "id" FROM "BillingPlan" WHERE "id" = ${draft.billingPlanId} FOR UPDATE`;
+        if (!draft.parentId) return null;
         const rows = await tx.$queryRaw<{ code: string }[]>`
             SELECT "code" FROM "BillingAccount" WHERE "id" = ${draft.parentId} FOR UPDATE`;
         if (!rows[0]) {

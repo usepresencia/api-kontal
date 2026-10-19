@@ -1,4 +1,5 @@
 import { useTestApp } from '@test/e2e/support/app.js';
+import { createPartyFixture } from '@test/e2e/support/ledger-fixtures.js';
 import {
     createAccountFixture,
     createCompanyFixture,
@@ -28,9 +29,11 @@ async function seed() {
         accountType: 'ANALYTIC',
     });
     const preset = await db().preset.create({ data: { billingPlanId: plan.id, name: 'Preset' } });
+    const party = await createPartyFixture(db(), company.id, preset.id);
     const titleData = {
         companyId: company.id,
         presetId: preset.id,
+        partyId: party.id,
         controlAccountId: control.id,
         resultAccountId: result.id,
         type: 'INCOME' as const,

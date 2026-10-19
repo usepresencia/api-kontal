@@ -215,6 +215,7 @@ describe('POST /journal-entries/:id/reverse', () => {
                 .set(headers)
                 .send({
                     presetId: seed.preset.id,
+                    partyId: seed.party.id,
                     type: 'INCOME',
                     description: 'Venda',
                     amount: '10.00',

@@ -1,3 +1,4 @@
+import { appendCnpjCheckDigits } from '@/domain/companies/cnpj.js';
 import { expect } from 'vitest';
 import type { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
 import {
@@ -32,7 +33,31 @@ const ROOTS: Record<number, [string, Nature, string]> = {
 
 export type RoleName = (typeof ROLE_ACCOUNTS)[number][0];
 
-/** Empresa, plano, árvore de contas com naturezas e um preset completo. */
+let partySequence = 0;
+
+/** Contraparte (cliente e fornecedor) com CNPJ válido e único e o preset como padrão. */
+export async function createPartyFixture(
+    db: PrismaService,
+    companyId: string,
+    defaultPresetId: string | null,
+    overrides: Record<string, unknown> = {},
+) {
+    partySequence += 1;
+    const base = String(10_000_000 + partySequence).padStart(8, '0');
+    return db.party.create({
+        data: {
+            companyId,
+            kind: 'BOTH',
+            name: `Parte ${partySequence}`,
+            socialReason: `Parte ${partySequence} LTDA`,
+            document: appendCnpjCheckDigits(`${base}0001`),
+            defaultPresetId,
+            ...overrides,
+        },
+    });
+}
+
+/** Empresa, plano, árvore de contas com naturezas, um preset completo e uma contraparte. */
 export async function seedLedger(
     db: PrismaService,
     options: { companyId?: string; name?: string } = {},
@@ -74,13 +99,18 @@ export async function seedLedger(
             accounts: { create: presetRoles.map(role => ({ role, accountId: accounts[role] })) },
         },
     });
-    return { company, plan, accounts, preset };
+    const party = await createPartyFixture(db, company.id, preset.id);
+    return { company, plan, accounts, preset, party };
 }
 
 /** Corpo válido de criação de título. */
-export function titleBody(presetId: string, overrides: Record<string, unknown> = {}) {
+export function titleBody(
+    seed: { preset: { id: string }; party: { id: string } },
+    overrides: Record<string, unknown> = {},
+) {
     return {
-        presetId,
+        presetId: seed.preset.id,
+        partyId: seed.party.id,
         type: 'INCOME',
         description: 'Venda',
         amount: '1000.00',

@@ -17,6 +17,7 @@ export interface TitleRow {
     id: string;
     companyId: string;
     presetId: string;
+    partyId: string;
     controlAccountId: string;
     resultAccountId: string;
     seriesId: string | null;
@@ -70,6 +71,9 @@ export class TitleEntity {
     }
     get presetId(): string {
         return this.row.presetId;
+    }
+    get partyId(): string {
+        return this.row.partyId;
     }
     get controlAccountId(): string {
         return this.row.controlAccountId;
@@ -130,6 +134,7 @@ export class TitleEntity {
         id: string;
         companyId: string;
         presetId: string;
+        partyId: string;
         accounts: { controlAccountId: string; resultAccountId: string };
         type: TitleType;
         description: string;
@@ -147,6 +152,7 @@ export class TitleEntity {
             id: params.id,
             companyId: params.companyId,
             presetId: params.presetId,
+            partyId: params.partyId,
             controlAccountId: params.accounts.controlAccountId,
             resultAccountId: params.accounts.resultAccountId,
             seriesId: params.seriesId ?? null,

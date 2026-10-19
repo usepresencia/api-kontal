@@ -20,6 +20,7 @@ beforeEach(async () => {
             data: {
                 companyId: seed.company.id,
                 presetId: seed.preset.id,
+                partyId: seed.party.id,
                 controlAccountId: seed.accounts.payable,
                 resultAccountId: seed.accounts.expense,
                 type: 'EXPENSE',

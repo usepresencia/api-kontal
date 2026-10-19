@@ -23,6 +23,7 @@ beforeEach(async () => {
 const recurring = (overrides: Record<string, unknown> = {}) => ({
     kind: 'RECURRING',
     presetId: seed.preset.id,
+    partyId: seed.party.id,
     type: 'EXPENSE',
     description: 'Aluguel',
     amount: '2500.00',

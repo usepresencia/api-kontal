@@ -57,7 +57,7 @@ export class TitlesController {
         const { page, pageSize, ...filter } = query;
         return toPageResponse(
             await this.listTitles.execute(companyId, filter, { page, pageSize }),
-            view => toTitleResponse(view.title, view.presetName),
+            view => toTitleResponse(view.title, view.presetName, view.partyName),
         );
     }
 
@@ -69,13 +69,13 @@ export class TitlesController {
         @Body(new ZodValidationPipe(createTitleSchema)) body: CreateTitleBody,
     ) {
         const view = await this.createTitle.execute(companyId, body);
-        return toTitleResponse(view.title, view.presetName);
+        return toTitleResponse(view.title, view.presetName, view.partyName);
     }
 
     @Get(':id')
     async get(@TenantId() companyId: string, @Param('id', new ParseUUIDPipe()) id: string) {
         const view = await this.getTitle.execute(companyId, id);
-        return toTitleResponse(view.title, view.presetName);
+        return toTitleResponse(view.title, view.presetName, view.partyName);
     }
 
     @Put(':id')
@@ -93,7 +93,7 @@ export class TitlesController {
             feesPercentageMonthly,
             locked,
         });
-        return toTitleResponse(view.title, view.presetName);
+        return toTitleResponse(view.title, view.presetName, view.partyName);
     }
 
     @Delete(':id')
