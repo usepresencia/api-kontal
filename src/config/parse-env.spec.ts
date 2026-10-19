@@ -85,3 +85,23 @@ describe('parseEnv: Cloudinary', () => {
         expect(env.CLOUDINARY_CLOUD_NAME).toBeUndefined();
     });
 });
+
+describe('parseEnv: PROVISIONING_API_KEY', () => {
+    it('é opcional e vazia vale como ausente', () => {
+        expect(parseEnv(valid).PROVISIONING_API_KEY).toBeUndefined();
+        expect(
+            parseEnv({ ...valid, PROVISIONING_API_KEY: '' }).PROVISIONING_API_KEY,
+        ).toBeUndefined();
+    });
+
+    it('aceita a chave com 32 caracteres ou mais', () => {
+        const key = 'k'.repeat(32);
+        expect(parseEnv({ ...valid, PROVISIONING_API_KEY: key }).PROVISIONING_API_KEY).toBe(key);
+    });
+
+    it('recusa chave curta', () => {
+        expect(() => parseEnv({ ...valid, PROVISIONING_API_KEY: 'curta' })).toThrow(
+            /PROVISIONING_API_KEY/,
+        );
+    });
+});

@@ -424,3 +424,29 @@ model JournalLine {
   @@index([journalEntryId])
   @@index([accountId, journalEntryId])
 }
+
+enum ProvisioningAction {
+  GRANT
+  REVOKE
+}
+
+enum ProvisioningStatus {
+  DONE
+  FAILED
+}
+
+/// Registro idempotente de cada concessão ou revogação de acesso pedida por outro sistema.
+model Provisioning {
+  id        String             @id
+  action    ProvisioningAction
+  status    ProvisioningStatus
+  email     String
+  companyId String
+  role      MembershipRole?
+  error     String?
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@index([email])
+  @@index([companyId])
+}
