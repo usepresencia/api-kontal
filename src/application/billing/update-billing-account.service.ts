@@ -1,0 +1,86 @@
+import { Inject, Injectable } from '@nestjs/common';
+import { requireAccount } from '@/application/billing/require-account.js';
+import { planAccountMove } from '@/domain/billing/account-move.policy.js';
+import { assertCanChangeType } from '@/domain/billing/account-hierarchy.policy.js';
+import { AccountType } from '@/domain/billing/account-type.js';
+import type { BalanceCategory } from '@/domain/billing/balance-category.js';
+import type { CostBehavior } from '@/domain/billing/cost-behavior.js';
+import type { DreCategory } from '@/domain/billing/dre-category.js';
+import { DomainError } from '@/domain/errors/domain-error.js';
+import { ErrorCode } from '@/domain/errors/error-codes.js';
+import type {
+    BillingAccountWithRefs,
+    IBillingAccountRepository,
+} from '@/domain/repositories/billing-account.repository.interface.js';
+import { BILLING_ACCOUNT_REPOSITORY } from '@/infrastructure/persistence/persistence.tokens.js';
+
+@Injectable()
+export class UpdateBillingAccountService {
+    constructor(
+        @Inject(BILLING_ACCOUNT_REPOSITORY) private readonly accounts: IBillingAccountRepository,
+    ) {}
+
+    /**
+     * Altera nome, status, tipo, categorias e o pai; valida filhas ao virar analítica, uso ao virar
+     * sintética e a nova posição na árvore ao mudar de pai.
+     */
+    async execute(
+        companyId: string,
+        id: string,
+        changes: {
+            /** Novo pai (`null` para a raiz); a conta e as filhas ganham novos códigos. */
+            parentId?: string | null;
+            name?: string;
+            isActive?: boolean;
+            accountType?: AccountType;
+            dreCategory?: DreCategory | null;
+            balanceCategory?: BalanceCategory | null;
+            costBehavior?: CostBehavior | null;
+        },
+    ): Promise<BillingAccountWithRefs> {
+        const current = await requireAccount(this.accounts, companyId, id);
+        const { account } = current;
+        if (changes.accountType !== undefined && changes.accountType !== account.accountType) {
+            if (changes.accountType === AccountType.SYNTHETIC) {
+                await this.assertNotInUse(id);
+            } else {
+                assertCanChangeType(
+                    changes.accountType,
+                    account.parentId !== null,
+                    await this.accounts.hasChildren(id),
+                );
+            }
+        }
+        const updated = account.withChanges(changes);
+        const moving = changes.parentId !== undefined && changes.parentId !== account.parentId;
+        if (!moving) {
+            await this.accounts.update(companyId, updated);
+            return { ...current, account: updated };
+        }
+        await this.accounts.moveWithRecode(
+            companyId,
+            account.billingPlanId,
+            id,
+            changes.parentId ?? null,
+            // Usa a conta lida com o plano travado: a lida antes da trava pode estar desatualizada.
+            ({ account: locked, newParent, descendants, siblingCodes }) =>
+                planAccountMove({
+                    account: { ...locked, accountType: updated.accountType },
+                    descendants,
+                    newParent,
+                    siblingCodes,
+                }),
+            updated,
+        );
+        return requireAccount(this.accounts, companyId, id);
+    }
+
+    private async assertNotInUse(id: string): Promise<void> {
+        if (await this.accounts.isInUse(id)) {
+            throw new DomainError(
+                ErrorCode.ACCOUNT_IN_USE,
+                'A conta está em uso e não pode virar sintética',
+            );
+        }
+    }
+}

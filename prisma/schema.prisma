@@ -1,10 +1,426 @@
 generator client {
-    provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["relationJoins"]
 }
 
 datasource db {
-    provider = "postgresql"
+  provider = "postgresql"
 }
 
-// Modelos nascem junto com cada issue de domínio (shared/billing/titles/ledger),
-// via TDD — ver docs/superpowers/specs/2026-09-19-kontal-migration-design.md.
+enum MembershipRole {
+  OWNER
+  OPERATIONAL
+  ACCOUNTANT
+  SUPPORT
+}
+
+enum PlatformRole {
+  INTERNAL_ADMIN
+  INTERNAL_SUPPORT
+  INTERNAL_BILLING
+  COPYWRITE
+}
+
+enum AccountType {
+  ANALYTIC
+  SYNTHETIC
+}
+
+enum AccountNature {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+}
+
+enum DreCategory {
+  GROSS_REVENUE
+  FINANCIAL_REVENUE
+  OTHER_REVENUE
+  REVENUE_DEDUCTION
+  COST_OF_SALES
+  OPERATING_EXPENSE
+  FINANCIAL_EXPENSE
+  OTHER_EXPENSE
+  INCOME_TAX
+}
+
+enum BalanceCategory {
+  CURRENT_ASSET
+  NON_CURRENT_ASSET
+  CURRENT_LIABILITY
+  NON_CURRENT_LIABILITY
+  EQUITY
+}
+
+enum CostBehavior {
+  VARIABLE
+  FIXED
+  DEPRECIATION
+}
+
+enum PresetRole {
+  receivable
+  payable
+  revenue
+  expense
+  interestIncome
+  discountGranted
+  badDebt
+  interestExpense
+  discountObtained
+  debtForgiveness
+  openingBalance
+}
+
+enum TitleType {
+  INCOME
+  EXPENSE
+}
+
+enum TitleStatus {
+  OPEN
+  SETTLED
+  WRITTEN_OFF
+}
+
+enum EntryKind {
+  PAYMENT
+  WRITE_OFF
+}
+
+enum PaymentMethod {
+  CASH
+  DEBIT
+  CREDIT
+  PIX
+}
+
+enum SeriesKind {
+  INSTALLMENT
+  RECURRING
+}
+
+enum SeriesFrequency {
+  WEEKLY
+  MONTHLY
+  YEARLY
+}
+
+enum JournalRefType {
+  TITLE_CREATION
+  TITLE_CANCELLATION
+  SETTLEMENT
+  SETTLEMENT_REVERSAL
+  MANUAL
+  MANUAL_REVERSAL
+  CLOSING
+  CLOSING_REVERSAL
+}
+
+model User {
+  id             String          @id @default(uuid())
+  firebaseUid    String          @unique
+  email          String          @unique
+  name           String
+  avatarUrl      String?
+  phone          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  memberships    Membership[]
+  platformAccess PlatformAccess?
+}
+
+model Company {
+  id             String          @id @default(uuid())
+  name           String
+  socialReason   String
+  cnpj           String          @unique
+  openingDate    DateTime        @db.Date
+  cnae           String
+  taxRegime      String
+  email          String
+  phone          String
+  logoUrl        String?
+  isActive       Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  closedThrough  DateTime?       @db.Date
+  memberships    Membership[]
+  address        CompanyAddress?
+  billingPlans   BillingPlan[]
+  titles         Title[]
+  titleSeries    TitleSeries[]
+  journalEntries JournalEntry[]
+  periodClosings PeriodClosing[]
+  parties        Party[]
+
+  @@index([isActive, name])
+}
+
+model PeriodClosing {
+  id             String   @id @default(uuid())
+  companyId      String
+  throughDate    DateTime @db.Date
+  closingEntryId String?
+  createdAt      DateTime @default(now())
+  company        Company  @relation(fields: [companyId], references: [id], onDelete: Restrict)
+
+  @@unique([companyId, throughDate])
+}
+
+model CompanyAddress {
+  id           String  @id @default(uuid())
+  companyId    String  @unique
+  zipCode      String
+  street       String
+  number       String
+  complement   String?
+  neighborhood String
+  city         String
+  state        String
+  company      Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+model Membership {
+  id        String         @id @default(uuid())
+  companyId String
+  userId    String
+  role      MembershipRole
+  isActive  Boolean        @default(true)
+  joinedAt  DateTime       @default(now())
+  company   Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, userId])
+  @@index([userId])
+}
+
+model PlatformAccess {
+  userId    String       @id
+  role      PlatformRole
+  createdAt DateTime     @default(now())
+  user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BillingPlan {
+  id          String           @id @default(uuid())
+  companyId   String
+  name        String
+  description String           @default("")
+  isDefault   Boolean          @default(false)
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+  company     Company          @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  accounts    BillingAccount[]
+  presets     Preset[]
+
+  @@index([companyId, name])
+}
+
+model BillingAccount {
+  id              String           @id @default(uuid())
+  billingPlanId   String
+  parentId        String?
+  name            String
+  accountType     AccountType
+  nature          AccountNature
+  dreCategory     DreCategory?
+  balanceCategory BalanceCategory?
+  costBehavior    CostBehavior?
+  isActive        Boolean          @default(true)
+  code            String
+  sortKey         String
+  level           Int
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  billingPlan     BillingPlan      @relation(fields: [billingPlanId], references: [id], onDelete: Restrict)
+  parent          BillingAccount?  @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children        BillingAccount[] @relation("AccountTree")
+  presetAccounts  PresetAccount[]
+  titlesAsControl Title[]          @relation("TitleControlAccount")
+  titlesAsResult  Title[]          @relation("TitleResultAccount")
+  entries         Entry[]
+  journalLines    JournalLine[]
+
+  @@unique([billingPlanId, code])
+  @@index([billingPlanId, parentId])
+  @@index([billingPlanId, sortKey])
+  @@index([accountType])
+  @@index([billingPlanId, nature])
+}
+
+enum PartyKind {
+  CLIENT
+  SUPPLIER
+  BOTH
+}
+
+model Party {
+  id              String    @id @default(uuid())
+  companyId       String
+  kind            PartyKind
+  name            String
+  socialReason    String
+  document        String
+  email           String    @default("")
+  phone           String    @default("")
+  zipCode         String?
+  street          String?
+  number          String?
+  complement      String?
+  neighborhood    String?
+  city            String?
+  state           String?
+  isActive        Boolean   @default(true)
+  defaultPresetId String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  company         Company   @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  defaultPreset   Preset?   @relation(fields: [defaultPresetId], references: [id], onDelete: Restrict)
+  titles          Title[]
+
+  @@unique([companyId, document])
+  @@index([companyId, kind, isActive])
+  @@index([defaultPresetId])
+}
+
+model Preset {
+  id            String          @id @default(uuid())
+  billingPlanId String
+  name          String
+  description   String          @default("")
+  isActive      Boolean         @default(true)
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  billingPlan   BillingPlan     @relation(fields: [billingPlanId], references: [id], onDelete: Restrict)
+  accounts      PresetAccount[]
+  titles        Title[]
+  parties       Party[]
+
+  @@index([billingPlanId, isActive])
+}
+
+model PresetAccount {
+  id        String         @id @default(uuid())
+  presetId  String
+  role      PresetRole
+  accountId String
+  preset    Preset         @relation(fields: [presetId], references: [id], onDelete: Cascade)
+  account   BillingAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@unique([presetId, role])
+  @@index([accountId])
+}
+
+model TitleSeries {
+  id                  String          @id @default(uuid())
+  companyId           String
+  kind                SeriesKind
+  frequency           SeriesFrequency
+  totalCount          Int
+  baseDescription     String
+  firstIssueDate      DateTime        @db.Date
+  firstExpirationDate DateTime        @db.Date
+  createdAt           DateTime        @default(now())
+  company             Company         @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  titles              Title[]
+
+  @@index([companyId, kind])
+}
+
+model Title {
+  id                    String         @id @default(uuid())
+  companyId             String
+  presetId              String
+  partyId               String
+  controlAccountId      String
+  resultAccountId       String
+  seriesId              String?
+  seriesIndex           Int?
+  type                  TitleType
+  status                TitleStatus    @default(OPEN)
+  description           String
+  amount                Decimal        @db.Decimal(12, 2)
+  settledAmount         Decimal        @default(0) @db.Decimal(12, 2)
+  issueDate             DateTime       @db.Date
+  expirationDate        DateTime       @db.Date
+  feesPercentageMonthly Decimal        @default(0) @db.Decimal(5, 2)
+  isOpening             Boolean        @default(false)
+  openingDate           DateTime?      @db.Date
+  createdAt             DateTime       @default(now())
+  updatedAt             DateTime       @updatedAt
+  company               Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  preset                Preset         @relation(fields: [presetId], references: [id], onDelete: Restrict)
+  party                 Party          @relation(fields: [partyId], references: [id], onDelete: Restrict)
+  controlAccount        BillingAccount @relation("TitleControlAccount", fields: [controlAccountId], references: [id], onDelete: Restrict)
+  resultAccount         BillingAccount @relation("TitleResultAccount", fields: [resultAccountId], references: [id], onDelete: Restrict)
+  series                TitleSeries?   @relation(fields: [seriesId], references: [id], onDelete: Restrict)
+  entries               Entry[]
+
+  @@unique([seriesId, seriesIndex])
+  @@index([companyId, status, expirationDate])
+  @@index([companyId, type])
+  @@index([presetId])
+  @@index([partyId])
+  @@index([seriesId])
+  @@index([controlAccountId])
+  @@index([resultAccountId])
+}
+
+model Entry {
+  id               String          @id @default(uuid())
+  titleId          String
+  kind             EntryKind
+  billingAccountId String?
+  principalAmount  Decimal         @db.Decimal(12, 2)
+  interestAmount   Decimal         @default(0) @db.Decimal(12, 2)
+  fineAmount       Decimal         @default(0) @db.Decimal(12, 2)
+  discountAmount   Decimal         @default(0) @db.Decimal(12, 2)
+  totalAmount      Decimal         @db.Decimal(12, 2)
+  paidAt           DateTime        @db.Date
+  paymentMethod    PaymentMethod?
+  description      String          @default("")
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  title            Title           @relation(fields: [titleId], references: [id], onDelete: Restrict)
+  billingAccount   BillingAccount? @relation(fields: [billingAccountId], references: [id], onDelete: Restrict)
+
+  @@index([titleId, paidAt])
+  @@index([billingAccountId])
+  @@index([paidAt])
+}
+
+model JournalEntry {
+  id            String         @id @default(uuid())
+  number        BigInt         @unique @default(autoincrement())
+  companyId     String
+  date          DateTime       @db.Date
+  description   String         @default("")
+  referenceType JournalRefType
+  referenceId   String
+  totalDebits   Decimal        @db.Decimal(14, 2)
+  totalCredits  Decimal        @db.Decimal(14, 2)
+  createdAt     DateTime       @default(now())
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  lines         JournalLine[]
+
+  @@unique([referenceType, referenceId])
+  @@index([companyId, date])
+  @@index([companyId, date, number])
+}
+
+model JournalLine {
+  id             String         @id @default(uuid())
+  journalEntryId String
+  accountId      String
+  debit          Decimal        @default(0) @db.Decimal(14, 2)
+  credit         Decimal        @default(0) @db.Decimal(14, 2)
+  memo           String         @default("")
+  journalEntry   JournalEntry   @relation(fields: [journalEntryId], references: [id], onDelete: Cascade)
+  account        BillingAccount @relation(fields: [accountId], references: [id], onDelete: Restrict)
+
+  @@index([journalEntryId])
+  @@index([accountId, journalEntryId])
+}
