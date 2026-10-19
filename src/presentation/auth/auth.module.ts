@@ -5,6 +5,7 @@ import { SessionService } from '@/application/auth/session.service.js';
 import { FirebaseAuthStrategy } from '@/infrastructure/auth/firebase-auth.strategy.js';
 import { FirebaseInitService } from '@/infrastructure/auth/firebase-init.service.js';
 import { FirebaseTokenVerifier } from '@/infrastructure/auth/firebase-token.verifier.js';
+import { MembershipReconciler } from '@/infrastructure/auth/membership.reconciler.js';
 import { PlatformRoleResolver } from '@/infrastructure/auth/platform-role.resolver.js';
 import { SessionUserAssembler } from '@/infrastructure/auth/session-user.assembler.js';
 import { UserProvisioner } from '@/infrastructure/auth/user-provisioner.js';
@@ -21,6 +22,7 @@ import { AuthController } from '@/presentation/auth/auth.controller.js';
         UserProvisioner,
         PlatformRoleResolver,
         SessionUserAssembler,
+        MembershipReconciler,
         FirebaseAuthStrategy,
     ],
 })

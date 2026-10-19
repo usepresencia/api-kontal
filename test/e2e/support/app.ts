@@ -8,6 +8,7 @@ import {
     type IdentityKey,
     clearEmulators,
     emulatorToken,
+    emulatorTokenWithClaims,
 } from '@test/e2e/support/firebase-emulator.js';
 import { QueryCounter } from '@test/e2e/support/query-counter.js';
 import { ProbeController } from '@test/e2e/support/probe.controller.js';
@@ -57,4 +58,12 @@ export function useTestApp() {
 /** Header `Authorization` com um ID token emitido pelo Auth Emulator para a identidade. */
 export async function bearer(key: IdentityKey): Promise<{ Authorization: string }> {
     return { Authorization: `Bearer ${await emulatorToken(key)}` };
+}
+
+/** Header `Authorization` com um ID token novo, emitido com as claims informadas. */
+export async function bearerWithClaims(
+    key: IdentityKey,
+    claims: Record<string, unknown>,
+): Promise<{ Authorization: string }> {
+    return { Authorization: `Bearer ${await emulatorTokenWithClaims(key, claims)}` };
 }
