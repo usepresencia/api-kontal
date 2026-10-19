@@ -53,25 +53,26 @@ export class UpdateBillingAccountService {
         }
         const updated = account.withChanges(changes);
         const moving = changes.parentId !== undefined && changes.parentId !== account.parentId;
-        if (moving) {
-            await this.accounts.moveWithRecode(
-                companyId,
-                account.billingPlanId,
-                id,
-                changes.parentId ?? null,
-                ({ newParent, descendants, siblingCodes }) =>
-                    planAccountMove({
-                        account: { ...account, accountType: updated.accountType },
-                        descendants,
-                        newParent,
-                        siblingCodes,
-                    }),
-            );
+        if (!moving) {
+            await this.accounts.update(companyId, updated);
+            return { ...current, account: updated };
         }
-        await this.accounts.update(companyId, updated);
-        return moving
-            ? requireAccount(this.accounts, companyId, id)
-            : { ...current, account: updated };
+        await this.accounts.moveWithRecode(
+            companyId,
+            account.billingPlanId,
+            id,
+            changes.parentId ?? null,
+            // Usa a conta lida com o plano travado: a lida antes da trava pode estar desatualizada.
+            ({ account: locked, newParent, descendants, siblingCodes }) =>
+                planAccountMove({
+                    account: { ...locked, accountType: updated.accountType },
+                    descendants,
+                    newParent,
+                    siblingCodes,
+                }),
+            updated,
+        );
+        return requireAccount(this.accounts, companyId, id);
     }
 
     private async assertNotInUse(id: string): Promise<void> {

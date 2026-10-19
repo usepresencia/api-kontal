@@ -33,10 +33,12 @@ describe('UpdateBillingAccountService', () => {
                         siblingCodes: ['1.2.1'],
                     }),
             );
-            await service.execute('c1', 'a1', { parentId: 'new' });
+            await service.execute('c1', 'a1', { parentId: 'new', name: 'Renomeada' });
             const call = accounts.moveWithRecode.mock.calls[0];
+            expect(call[5]).toMatchObject({ name: 'Renomeada' });
             expect(call.slice(0, 4)).toEqual(['c1', 'p1', 'a1', 'new']);
-            expect(accounts.update).toHaveBeenCalled();
+            // os demais campos entram na mesma transação do mover, não numa gravação à parte
+            expect(accounts.update).not.toHaveBeenCalled();
             expect(accounts.findById).toHaveBeenCalledTimes(2);
         });
 
@@ -55,6 +57,24 @@ describe('UpdateBillingAccountService', () => {
             );
             await service.execute('c1', 'a1', { parentId: 'new' });
             expect(recodes).toEqual([{ id: 'a1', code: '1.2.3', level: 3 }]);
+        });
+
+        it('o plano usa a conta lida com a trava, não a lida antes dela', async () => {
+            accounts.findById.mockResolvedValue(viewFixture(mover));
+            const locked = accountFixture({ id: 'a1', parentId: 'old', level: 3, code: '1.9.1' });
+            let recodes: unknown;
+            accounts.moveWithRecode.mockImplementation(
+                async (_company, _plan, _id, _parent, plan) => {
+                    recodes = plan({
+                        account: locked,
+                        newParent: target,
+                        descendants: [],
+                        siblingCodes: [],
+                    });
+                },
+            );
+            await service.execute('c1', 'a1', { parentId: 'new' });
+            expect(recodes).toEqual([{ id: 'a1', code: '1.2.1', level: 3 }]);
         });
 
         it('mover para a raiz envia null e manter o mesmo pai não move nada', async () => {

@@ -44,7 +44,7 @@ export interface IBillingAccountRepository {
     ): Promise<BillingAccountWithRefs>;
     /**
      * Muda a conta de pai numa transação que trava o plano: `plan` decide o novo código e nível da
-     * conta e das filhas, e o repositório grava tudo de uma vez.
+     * conta e das filhas e `fields` traz os demais campos alterados; tudo é gravado de uma vez.
      * @throws DomainError BILLING_ACCOUNT_NOT_FOUND se a conta sumiu, ACCOUNT_PARENT_INVALID se o novo pai
      *   não existe no plano, CONFLICT se o código colidir mesmo com a trava
      */
@@ -54,6 +54,7 @@ export interface IBillingAccountRepository {
         accountId: string,
         newParentId: string | null,
         plan: (context: MoveContext) => AccountRecode[],
+        fields: BillingAccountEntity,
     ): Promise<void>;
     update(companyId: string, account: BillingAccountEntity): Promise<void>;
     hasChildren(id: string): Promise<boolean>;

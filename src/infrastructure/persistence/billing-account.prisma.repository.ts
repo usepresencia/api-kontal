@@ -86,6 +86,7 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
         accountId: string,
         newParentId: string | null,
         plan: (context: MoveContext) => AccountRecode[],
+        fields: BillingAccountEntity,
     ): Promise<void> {
         try {
             await this.prisma.$transaction(async tx => {
@@ -132,6 +133,17 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
                     newParent: parentRow ? BillingAccountEntity.fromPersistence(parentRow) : null,
                     descendants: descendants.map(row => BillingAccountEntity.fromPersistence(row)),
                     siblingCodes: siblings.map(sibling => sibling.code),
+                });
+                await tx.billingAccount.updateMany({
+                    where: { id: fields.id, billingPlan: { companyId } },
+                    data: {
+                        name: fields.name,
+                        isActive: fields.isActive,
+                        accountType: fields.accountType,
+                        dreCategory: fields.dreCategory,
+                        balanceCategory: fields.balanceCategory,
+                        costBehavior: fields.costBehavior,
+                    },
                 });
                 for (const change of changes) {
                     await tx.billingAccount.update({
@@ -254,15 +266,14 @@ export class BillingAccountPrismaRepository implements IBillingAccountRepository
         return rows.map(toAccountView);
     }
 
-    /** Trava o pai (ou o plano, para raiz) e devolve o código do pai. */
+    /** Trava o plano e o pai (quando há) e devolve o código do pai. */
     private async lockAndReadParentCode(
         tx: Prisma.TransactionClient,
         draft: NewBillingAccount,
     ): Promise<string | null> {
-        if (!draft.parentId) {
-            await tx.$queryRaw`SELECT "id" FROM "BillingPlan" WHERE "id" = ${draft.billingPlanId} FOR UPDATE`;
-            return null;
-        }
+        // A mesma trava do plano que `moveWithRecode` usa: criar e mover contas não se cruzam.
+        await tx.$queryRaw`SELECT "id" FROM "BillingPlan" WHERE "id" = ${draft.billingPlanId} FOR UPDATE`;
+        if (!draft.parentId) return null;
         const rows = await tx.$queryRaw<{ code: string }[]>`
             SELECT "code" FROM "BillingAccount" WHERE "id" = ${draft.parentId} FOR UPDATE`;
         if (!rows[0]) {
