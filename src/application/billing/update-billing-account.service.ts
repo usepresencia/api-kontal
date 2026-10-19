@@ -1,5 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { requireAccount } from '@/application/billing/require-account.js';
+import { planAccountMove } from '@/domain/billing/account-move.policy.js';
 import { assertCanChangeType } from '@/domain/billing/account-hierarchy.policy.js';
 import { AccountType } from '@/domain/billing/account-type.js';
 import type { BalanceCategory } from '@/domain/billing/balance-category.js';
@@ -19,11 +20,16 @@ export class UpdateBillingAccountService {
         @Inject(BILLING_ACCOUNT_REPOSITORY) private readonly accounts: IBillingAccountRepository,
     ) {}
 
-    /** Altera nome, status, tipo e categorias; valida filhas ao virar analítica e uso ao virar sintética. */
+    /**
+     * Altera nome, status, tipo, categorias e o pai; valida filhas ao virar analítica, uso ao virar
+     * sintética e a nova posição na árvore ao mudar de pai.
+     */
     async execute(
         companyId: string,
         id: string,
         changes: {
+            /** Novo pai (`null` para a raiz); a conta e as filhas ganham novos códigos. */
+            parentId?: string | null;
             name?: string;
             isActive?: boolean;
             accountType?: AccountType;
@@ -46,8 +52,26 @@ export class UpdateBillingAccountService {
             }
         }
         const updated = account.withChanges(changes);
+        const moving = changes.parentId !== undefined && changes.parentId !== account.parentId;
+        if (moving) {
+            await this.accounts.moveWithRecode(
+                companyId,
+                account.billingPlanId,
+                id,
+                changes.parentId ?? null,
+                ({ newParent, descendants, siblingCodes }) =>
+                    planAccountMove({
+                        account: { ...account, accountType: updated.accountType },
+                        descendants,
+                        newParent,
+                        siblingCodes,
+                    }),
+            );
+        }
         await this.accounts.update(companyId, updated);
-        return { ...current, account: updated };
+        return moving
+            ? requireAccount(this.accounts, companyId, id)
+            : { ...current, account: updated };
     }
 
     private async assertNotInUse(id: string): Promise<void> {

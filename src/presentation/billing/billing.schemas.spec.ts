@@ -132,3 +132,12 @@ describe('listBillingAccountsQuerySchema', () => {
         expect(listBillingAccountsQuerySchema.safeParse({ planId: 'x' }).success).toBe(false);
     });
 });
+
+describe('updateBillingAccountSchema: pai', () => {
+    it('aceita um novo pai, a raiz (null) e recusa pai que não é UUID', () => {
+        const uuid = '3f6d0a2e-8b1c-4f5e-9a7d-1c2b3a4d5e6f';
+        expect(updateBillingAccountSchema.parse({ parentId: uuid }).parentId).toBe(uuid);
+        expect(updateBillingAccountSchema.parse({ parentId: null }).parentId).toBeNull();
+        expect(updateBillingAccountSchema.safeParse({ parentId: 'x' }).success).toBe(false);
+    });
+});

@@ -27,6 +27,7 @@ export function fakeAccounts() {
         findById: vi.fn(),
         findParent: vi.fn(),
         insertWithNextCode: vi.fn(),
+        moveWithRecode: vi.fn(),
         update: vi.fn(),
         hasChildren: vi.fn(),
         isInUse: vi.fn(),

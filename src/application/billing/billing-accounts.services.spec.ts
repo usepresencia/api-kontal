@@ -18,6 +18,68 @@ beforeEach(() => {
 describe('UpdateBillingAccountService', () => {
     const service = new UpdateBillingAccountService(accounts);
 
+    describe('mudança de pai', () => {
+        const mover = accountFixture({ id: 'a1', parentId: 'old', level: 2, code: '1.1' });
+        const target = accountFixture({ id: 'new', code: '1.2', level: 2 });
+
+        it('move a conta, passando ao repositório o plano de recodificação, e relê a conta', async () => {
+            accounts.findById.mockResolvedValue(viewFixture(mover));
+            accounts.moveWithRecode.mockImplementation(
+                async (_company, _plan, _id, _parent, plan) =>
+                    plan({
+                        account: mover,
+                        newParent: target,
+                        descendants: [],
+                        siblingCodes: ['1.2.1'],
+                    }),
+            );
+            await service.execute('c1', 'a1', { parentId: 'new' });
+            const call = accounts.moveWithRecode.mock.calls[0];
+            expect(call.slice(0, 4)).toEqual(['c1', 'p1', 'a1', 'new']);
+            expect(accounts.update).toHaveBeenCalled();
+            expect(accounts.findById).toHaveBeenCalledTimes(2);
+        });
+
+        it('o plano gerado recodifica a conta sob o novo pai', async () => {
+            accounts.findById.mockResolvedValue(viewFixture(mover));
+            let recodes: unknown;
+            accounts.moveWithRecode.mockImplementation(
+                async (_company, _plan, _id, _parent, plan) => {
+                    recodes = plan({
+                        account: mover,
+                        newParent: target,
+                        descendants: [],
+                        siblingCodes: ['1.2.1', '1.2.2'],
+                    });
+                },
+            );
+            await service.execute('c1', 'a1', { parentId: 'new' });
+            expect(recodes).toEqual([{ id: 'a1', code: '1.2.3', level: 3 }]);
+        });
+
+        it('mover para a raiz envia null e manter o mesmo pai não move nada', async () => {
+            accounts.findById.mockResolvedValue(viewFixture(mover));
+            accounts.moveWithRecode.mockResolvedValue(undefined);
+            await service.execute('c1', 'a1', { parentId: null });
+            expect(accounts.moveWithRecode.mock.calls[0][3]).toBeNull();
+            accounts.moveWithRecode.mockClear();
+            await service.execute('c1', 'a1', { parentId: 'old', name: 'Outro nome' });
+            expect(accounts.moveWithRecode).not.toHaveBeenCalled();
+        });
+
+        it('valida as categorias antes de mover: se falhar, nada é gravado', async () => {
+            accounts.findById.mockResolvedValue(viewFixture(mover));
+            await expect(
+                service.execute('c1', 'a1', {
+                    parentId: 'new',
+                    dreCategory: DreCategory.INCOME_TAX,
+                }),
+            ).rejects.toMatchObject({ code: expect.stringContaining('CATEGORY') });
+            expect(accounts.moveWithRecode).not.toHaveBeenCalled();
+            expect(accounts.update).not.toHaveBeenCalled();
+        });
+    });
+
     it('altera nome e status sem consultar filhas e preserva as referências da leitura', async () => {
         accounts.findById.mockResolvedValue({ ...viewFixture(), billingPlanName: 'Plano X' });
         accounts.update.mockResolvedValue(undefined);

@@ -39,6 +39,7 @@ describe('statusForCode', () => {
         [ErrorCode.ENTRY_EXCEEDS_BALANCE, 409],
         [ErrorCode.ENTRY_DELETE_BLOCKED, 409],
         [ErrorCode.ACCOUNT_IN_USE, 409],
+        [ErrorCode.ACCOUNT_MOVE_INVALID, 400],
         [ErrorCode.PRESET_IN_USE, 409],
         [ErrorCode.PARTY_NOT_FOUND, 404],
         [ErrorCode.PARTY_DOCUMENT_TAKEN, 409],
