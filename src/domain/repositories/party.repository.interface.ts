@@ -1,4 +1,5 @@
 import type { PartyEntity } from '@/domain/entities/party.entity.js';
+import type { TitleType } from '@/domain/ledger/title-type.js';
 import type { Page, PageRequest } from '@/domain/pagination.js';
 import type { PartyKind } from '@/domain/parties/party-kind.js';
 
@@ -22,6 +23,8 @@ export interface IPartyRepository {
     update(companyId: string, party: PartyEntity): Promise<void>;
     /** Indica se o tenant já tem uma contraparte com o documento, ignorando o id informado. */
     documentTaken(companyId: string, document: string, exceptId?: string): Promise<boolean>;
+    /** Indica se a contraparte tem títulos do tipo informado. */
+    hasTitlesOfType(id: string, type: TitleType): Promise<boolean>;
     /** Indica se algum título usa a contraparte. */
     isInUse(id: string): Promise<boolean>;
     delete(companyId: string, id: string): Promise<void>;

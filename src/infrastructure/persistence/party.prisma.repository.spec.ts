@@ -123,4 +123,27 @@ describe('PartyPrismaRepository', () => {
             where: { id: 'pt1', companyId: 'c1' },
         });
     });
+
+    it('create converte a violação do índice único em PARTY_DOCUMENT_TAKEN', async () => {
+        const { repo, partyModel } = makeRepo();
+        partyModel.create.mockRejectedValue(Object.assign(new Error('unique'), { code: 'P2002' }));
+        await expect(repo.create(party)).rejects.toMatchObject({ code: 'PARTY_DOCUMENT_TAKEN' });
+    });
+
+    it('a busca só procura no documento quando o termo é numérico', async () => {
+        const { repo, partyModel } = makeRepo();
+        partyModel.findMany.mockResolvedValue([]);
+        partyModel.count.mockResolvedValue(0);
+        await repo.list('c1', { search: 'Loja 12' }, { page: 1, pageSize: 10 });
+        expect(partyModel.findMany.mock.calls[0][0].where.OR).toHaveLength(2);
+        await repo.list('c1', { search: '11.222' }, { page: 1, pageSize: 10 });
+        expect(partyModel.findMany.mock.calls[1][0].where.OR).toHaveLength(3);
+    });
+
+    it('hasTitlesOfType conta os títulos do tipo', async () => {
+        const { repo, title } = makeRepo();
+        title.count.mockResolvedValue(2);
+        expect(await repo.hasTitlesOfType('pt1', 'EXPENSE')).toBe(true);
+        expect(title.count).toHaveBeenCalledWith({ where: { partyId: 'pt1', type: 'EXPENSE' } });
+    });
 });

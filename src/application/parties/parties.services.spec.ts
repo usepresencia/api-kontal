@@ -22,6 +22,7 @@ function fakeParties() {
         list: vi.fn(),
         update: vi.fn(),
         documentTaken: vi.fn().mockResolvedValue(false),
+        hasTitlesOfType: vi.fn().mockResolvedValue(false),
         isInUse: vi.fn().mockResolvedValue(false),
         delete: vi.fn(),
         presetInUse: vi.fn().mockResolvedValue(false),
@@ -100,6 +101,31 @@ describe('UpdatePartyService', () => {
         await expect(service.execute('c1', 'pt1', input)).rejects.toMatchObject({
             code: 'PARTY_DOCUMENT_TAKEN',
         });
+    });
+
+    it('recusa mudar o tipo quando há títulos que ele deixaria de aceitar', async () => {
+        const parties = fakeParties();
+        parties.hasTitlesOfType.mockImplementation(
+            async (_id: string, type: string) => type === 'EXPENSE',
+        );
+        const service = new UpdatePartyService(parties, fakePresets());
+        await expect(
+            service.execute('c1', 'pt1', { ...input, kind: 'CLIENT' }),
+        ).rejects.toMatchObject({
+            code: 'PARTY_KIND_MISMATCH',
+        });
+        expect(parties.update).not.toHaveBeenCalled();
+    });
+
+    it('permite mudar o tipo quando os títulos continuam compatíveis', async () => {
+        const parties = fakeParties();
+        parties.hasTitlesOfType.mockImplementation(
+            async (_id: string, type: string) => type === 'EXPENSE',
+        );
+        const service = new UpdatePartyService(parties, fakePresets());
+        await expect(
+            service.execute('c1', 'pt1', { ...input, kind: 'BOTH' }),
+        ).resolves.toBeDefined();
     });
 
     it('contraparte de outro tenant lança PARTY_NOT_FOUND', async () => {

@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import type { Prisma } from '@prisma/client';
 import type { PartyEntity } from '@/domain/entities/party.entity.js';
+import { DomainError } from '@/domain/errors/domain-error.js';
+import { ErrorCode } from '@/domain/errors/error-codes.js';
+import { isUniqueConstraintError } from '@/utils/prisma.utils.js';
+import type { TitleType } from '@/domain/ledger/title-type.js';
 import { type Page, type PageRequest, pageOffset } from '@/domain/pagination.js';
 import type {
     IPartyRepository,
@@ -19,7 +23,7 @@ export class PartyPrismaRepository implements IPartyRepository {
     constructor(private readonly prisma: PrismaService) {}
 
     async create(party: PartyEntity): Promise<void> {
-        await this.prisma.party.create({ data: this.toData(party) });
+        await this.guardDocument(() => this.prisma.party.create({ data: this.toData(party) }));
     }
 
     async findById(companyId: string, id: string): Promise<PartyView | null> {
@@ -36,7 +40,8 @@ export class PartyPrismaRepository implements IPartyRepository {
         filter: PartyFilter,
         page: PageRequest,
     ): Promise<Page<PartyView>> {
-        const digits = filter.search?.replace(/\D/g, '') ?? '';
+        const looksLikeDocument = /^[\d.\-/\s]+$/.test(filter.search ?? '');
+        const digits = looksLikeDocument ? (filter.search?.replace(/\D/g, '') ?? '') : '';
         const where: Prisma.PartyWhereInput = {
             companyId,
             ...(filter.kind ? { kind: filter.kind } : {}),
@@ -66,10 +71,12 @@ export class PartyPrismaRepository implements IPartyRepository {
     }
 
     async update(companyId: string, party: PartyEntity): Promise<void> {
-        await this.prisma.party.update({
-            where: { id: party.id, companyId },
-            data: this.toData(party),
-        });
+        await this.guardDocument(() =>
+            this.prisma.party.update({
+                where: { id: party.id, companyId },
+                data: this.toData(party),
+            }),
+        );
     }
 
     async documentTaken(companyId: string, document: string, exceptId?: string): Promise<boolean> {
@@ -78,6 +85,10 @@ export class PartyPrismaRepository implements IPartyRepository {
             select: { id: true },
         });
         return found !== null;
+    }
+
+    async hasTitlesOfType(id: string, type: TitleType): Promise<boolean> {
+        return (await this.prisma.title.count({ where: { partyId: id, type } })) > 0;
     }
 
     async isInUse(id: string): Promise<boolean> {
@@ -90,6 +101,21 @@ export class PartyPrismaRepository implements IPartyRepository {
 
     async presetInUse(presetId: string): Promise<boolean> {
         return (await this.prisma.party.count({ where: { defaultPresetId: presetId } })) > 0;
+    }
+
+    /** Converte a violação do índice único (corrida entre duas gravações) no erro do domínio. */
+    private async guardDocument(write: () => Promise<unknown>): Promise<void> {
+        try {
+            await write();
+        } catch (err) {
+            if (isUniqueConstraintError(err)) {
+                throw new DomainError(
+                    ErrorCode.PARTY_DOCUMENT_TAKEN,
+                    'Já existe uma contraparte com este documento',
+                );
+            }
+            throw err;
+        }
     }
 
     private toData(party: PartyEntity) {

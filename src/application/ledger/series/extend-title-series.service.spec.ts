@@ -1,6 +1,7 @@
 import { ExtendTitleSeriesService } from '@/application/ledger/series/extend-title-series.service.js';
 import { SeriesEntity } from '@/domain/entities/series.entity.js';
-import { fakeUow, titleFixture } from '@test/support/ledger-fakes.js';
+import { PartyEntity } from '@/domain/entities/party.entity.js';
+import { fakeUow, partyFixture, titleFixture } from '@test/support/ledger-fakes.js';
 
 const { uow, tx } = fakeUow();
 const service = new ExtendTitleSeriesService(uow);
@@ -30,6 +31,7 @@ const last = titleFixture({
 });
 
 beforeEach(() => {
+    tx.parties.find.mockReset().mockResolvedValue(partyFixture);
     tx.series.lock.mockReset().mockResolvedValue(series());
     tx.series.lastTitle.mockReset().mockResolvedValue(last);
     tx.series.save.mockReset();
@@ -100,6 +102,38 @@ describe('ExtendTitleSeriesService', () => {
         tx.series.lastTitle.mockResolvedValue(null);
         await expect(service.execute('c1', 's1', { count: 1 })).rejects.toMatchObject({
             code: 'INTERNAL_ERROR',
+        });
+    });
+});
+
+describe('ExtendTitleSeriesService: contraparte da série', () => {
+    const party = (changes: Partial<Parameters<typeof PartyEntity.create>[0]>) =>
+        PartyEntity.create({
+            id: 'pt1',
+            companyId: 'c1',
+            kind: 'SUPPLIER',
+            name: 'Copel',
+            socialReason: 'Companhia Paranaense de Energia',
+            document: '11.222.333/0001-81',
+            email: '',
+            phone: '',
+            address: null,
+            defaultPresetId: 'pr1',
+            ...changes,
+        });
+
+    it('contraparte desativada depois da criação lança PARTY_INACTIVE e não grava', async () => {
+        tx.parties.find.mockResolvedValue(party({ isActive: false }));
+        await expect(service.execute('c1', 's1', { count: 2 })).rejects.toMatchObject({
+            code: 'PARTY_INACTIVE',
+        });
+        expect(tx.titles.insertAll).not.toHaveBeenCalled();
+    });
+
+    it('contraparte que passou a ser só cliente lança PARTY_KIND_MISMATCH numa série a pagar', async () => {
+        tx.parties.find.mockResolvedValue(party({ kind: 'CLIENT' }));
+        await expect(service.execute('c1', 's1', { count: 2 })).rejects.toMatchObject({
+            code: 'PARTY_KIND_MISMATCH',
         });
     });
 });
