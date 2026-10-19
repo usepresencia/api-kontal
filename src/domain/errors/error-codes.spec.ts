@@ -18,6 +18,8 @@ describe('statusForCode', () => {
         [ErrorCode.LOGO_URL_INVALID, 400],
         [ErrorCode.ACCOUNT_HAS_CHILDREN, 409],
         [ErrorCode.PLAN_HAS_ACCOUNTS, 409],
+        [ErrorCode.CLAIM_LIMIT_EXCEEDED, 409],
+        [ErrorCode.PROVISIONING_DISABLED, 503],
         [ErrorCode.DEFAULT_PLAN_PROTECTED, 409],
         [ErrorCode.CNPJ_ALREADY_REGISTERED, 409],
         [ErrorCode.MEDIA_NOT_CONFIGURED, 503],
