@@ -161,3 +161,71 @@ describe('planos de contas', () => {
         ]);
     });
 });
+
+describe('plano padrão', () => {
+    it('o primeiro plano nasce padrão e o segundo não', async () => {
+        const first = await api()
+            .post('/api/v1/billing-plans')
+            .set(await asAdmin())
+            .send({ name: 'Primeiro' })
+            .expect(201);
+        const second = await api()
+            .post('/api/v1/billing-plans')
+            .set(await asAdmin())
+            .send({ name: 'Segundo' })
+            .expect(201);
+        expect(first.body.isDefault).toBe(true);
+        expect(second.body.isDefault).toBe(false);
+    });
+
+    it('POST /:id/default troca o padrão e mantém um só por empresa', async () => {
+        const first = await createPlanFixture(db(), COMPANY_ID, { name: 'A' });
+        const second = await createPlanFixture(db(), COMPANY_ID, { name: 'B' });
+        const res = await api()
+            .post(`/api/v1/billing-plans/${second.id}/default`)
+            .set(await asAdmin())
+            .expect(200);
+        expect(res.body).toMatchObject({ id: second.id, isDefault: true });
+        const defaults = await db().billingPlan.findMany({
+            where: { companyId: COMPANY_ID, isDefault: true },
+        });
+        expect(defaults.map(plan => plan.id)).toEqual([second.id]);
+        expect(first.id).not.toBe(second.id);
+    });
+
+    it('plano de outra empresa responde 404 e papel sem escrita responde 403', async () => {
+        const other = await createPlanFixture(db(), OTHER_COMPANY_ID);
+        await api()
+            .post(`/api/v1/billing-plans/${other.id}/default`)
+            .set(await asAdmin())
+            .expect(404);
+        const own = await createPlanFixture(db(), COMPANY_ID);
+        await api()
+            .post(`/api/v1/billing-plans/${own.id}/default`)
+            .set(await asBilling())
+            .expect(403);
+    });
+
+    it('com dois planos o relatório sem billingPlanId usa o padrão', async () => {
+        await createPlanFixture(db(), COMPANY_ID, { name: 'A' });
+        await createPlanFixture(db(), COMPANY_ID, { name: 'B' });
+        await api()
+            .get('/api/v1/reports/dre?start=2026-01-01&end=2026-01-31')
+            .set(await asAdmin())
+            .expect(200);
+    });
+
+    it('o plano padrão com outros planos na empresa não pode ser excluído', async () => {
+        const first = await createPlanFixture(db(), COMPANY_ID, { name: 'A' });
+        const second = await createPlanFixture(db(), COMPANY_ID, { name: 'B' });
+        const res = await api()
+            .delete(`/api/v1/billing-plans/${first.id}`)
+            .set(await asAdmin())
+            .expect(409);
+        expect(res.body.code ?? res.body.message).toBeDefined();
+        await api()
+            .delete(`/api/v1/billing-plans/${second.id}`)
+            .set(await asAdmin())
+            .expect(204);
+    });
+});

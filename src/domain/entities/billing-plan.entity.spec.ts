@@ -43,6 +43,10 @@ describe('BillingPlanEntity', () => {
             description: 'desc',
         });
         expect(changed.createdAt).toBe(plan.createdAt);
+        expect(
+            BillingPlanEntity.create({ ...plan, isDefault: true }).withChanges({ name: 'X' })
+                .isDefault,
+        ).toBe(true);
         expect(() => plan.withChanges({ name: '' })).toThrow(DomainError);
     });
 
@@ -53,8 +57,10 @@ describe('BillingPlanEntity', () => {
             companyId: 'c9',
             name: 'N',
             description: 'D',
+            isDefault: true,
             createdAt,
         });
         expect(plan.createdAt).toBe(createdAt);
+        expect(plan.isDefault).toBe(true);
     });
 });

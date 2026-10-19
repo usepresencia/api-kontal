@@ -11,10 +11,20 @@ export class DeleteBillingPlanService {
 
     /**
      * Exclui o plano da empresa.
-     * @throws DomainError PLAN_HAS_ACCOUNTS se o plano ainda tem contas
+     * @throws DomainError PLAN_HAS_ACCOUNTS se o plano ainda tem contas;
+     * DEFAULT_PLAN_PROTECTED se é o padrão e a empresa tem outros planos
      */
     async execute(companyId: string, id: string): Promise<void> {
-        await requirePlan(this.plans, companyId, id);
+        const plan = await requirePlan(this.plans, companyId, id);
+        if (
+            plan.isDefault &&
+            (await this.plans.list(companyId, { page: 1, pageSize: 2 })).total > 1
+        ) {
+            throw new DomainError(
+                ErrorCode.DEFAULT_PLAN_PROTECTED,
+                'Exclusão bloqueada: escolha outro plano como padrão antes de excluir este',
+            );
+        }
         if (await this.plans.hasAccounts(id)) {
             throw new DomainError(
                 ErrorCode.PLAN_HAS_ACCOUNTS,

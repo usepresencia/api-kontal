@@ -9,6 +9,7 @@ import { ListBillingAccountsService } from '@/application/billing/list-billing-a
 import { ListBillingPlansService } from '@/application/billing/list-billing-plans.service.js';
 import { ListPlanAccountsService } from '@/application/billing/list-plan-accounts.service.js';
 import { UpdateBillingAccountService } from '@/application/billing/update-billing-account.service.js';
+import { SetDefaultBillingPlanService } from '@/application/billing/set-default-billing-plan.service.js';
 import { UpdateBillingPlanService } from '@/application/billing/update-billing-plan.service.js';
 import { BillingAccountsController } from '@/presentation/billing/billing-accounts.controller.js';
 import { BillingPlansController } from '@/presentation/billing/billing-plans.controller.js';
@@ -22,6 +23,7 @@ import { BillingPlansController } from '@/presentation/billing/billing-plans.con
         GetBillingPlanService,
         ListBillingPlansService,
         ListPlanAccountsService,
+        SetDefaultBillingPlanService,
         CreateBillingAccountService,
         UpdateBillingAccountService,
         DeleteBillingAccountService,

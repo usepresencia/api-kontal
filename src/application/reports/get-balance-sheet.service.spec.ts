@@ -12,7 +12,7 @@ const date = new Date('2026-10-31T00:00:00.000Z');
 beforeEach(() => {
     for (const fake of [plans, accounts, totals])
         for (const fn of Object.values(fake)) fn.mockReset();
-    plans.list.mockResolvedValue({ items: [planFixture], page: 1, pageSize: 2, total: 1 });
+    plans.findDefault.mockResolvedValue(planFixture);
     accounts.list.mockResolvedValue([
         reportAccount('bank', '1.1', AccountNature.ASSET),
         reportAccount('capital', '5.1', AccountNature.EQUITY),
@@ -24,7 +24,7 @@ beforeEach(() => {
 });
 
 describe('GetBalanceSheetService', () => {
-    it('usa o único plano e os saldos acumulados até a data', async () => {
+    it('usa o plano padrão e os saldos acumulados até a data', async () => {
         const result = await service.execute('c1', { date });
         expect(totals.balancesUntil).toHaveBeenCalledWith('c1', planFixture.id, date);
         expect(accounts.list).toHaveBeenCalledWith('c1', planFixture.id);

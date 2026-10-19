@@ -7,6 +7,7 @@ export interface BillingPlanRow {
     companyId: string;
     name: string;
     description: string;
+    isDefault: boolean;
     createdAt: Date;
 }
 
@@ -24,6 +25,7 @@ export class BillingPlanEntity {
         readonly companyId: string,
         readonly name: string,
         readonly description: string,
+        readonly isDefault: boolean,
         readonly createdAt: Date,
     ) {}
 
@@ -32,6 +34,7 @@ export class BillingPlanEntity {
         companyId: string;
         name: string;
         description?: string;
+        isDefault?: boolean;
         createdAt?: Date;
     }): BillingPlanEntity {
         if (!params.companyId) {
@@ -42,6 +45,7 @@ export class BillingPlanEntity {
             params.companyId,
             requiredText(params.name, 'Nome do plano'),
             normalizeDescription(params.description),
+            params.isDefault ?? false,
             params.createdAt ?? new Date(),
         );
     }
@@ -52,6 +56,7 @@ export class BillingPlanEntity {
             this.companyId,
             requiredText(changes.name, 'Nome do plano'),
             normalizeDescription(changes.description),
+            this.isDefault,
             this.createdAt,
         );
     }
@@ -62,6 +67,7 @@ export class BillingPlanEntity {
             row.companyId,
             row.name,
             row.description,
+            row.isDefault,
             row.createdAt,
         );
     }

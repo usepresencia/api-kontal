@@ -14,6 +14,8 @@ import type { IBillingPlanRepository } from '@/domain/repositories/billing-plan.
 export function fakePlans() {
     return {
         create: vi.fn(),
+        findDefault: vi.fn(),
+        setDefault: vi.fn(),
         findById: vi.fn(),
         list: vi.fn(),
         update: vi.fn(),
