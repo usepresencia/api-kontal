@@ -42,19 +42,16 @@ describe('resolveReportPlan', () => {
         });
     });
 
-    it('sem plano informado usa o único plano da empresa', async () => {
-        plans.list.mockResolvedValue({ items: [planFixture], page: 1, pageSize: 2, total: 1 });
+    it('sem plano informado usa o plano padrão da empresa', async () => {
+        plans.findDefault.mockResolvedValue(planFixture);
         await expect(resolveReportPlan(plans, 'c1', undefined)).resolves.toBe(planFixture.id);
-        expect(plans.list).toHaveBeenCalledWith('c1', { page: 1, pageSize: 2 });
+        expect(plans.findDefault).toHaveBeenCalledWith('c1');
     });
 
-    it.each([0, 2, 5])(
-        'sem plano informado e com %i planos: BILLING_PLAN_REQUIRED',
-        async total => {
-            plans.list.mockResolvedValue({ items: [], page: 1, pageSize: 2, total });
-            await expect(resolveReportPlan(plans, 'c1', undefined)).rejects.toMatchObject({
-                code: 'BILLING_PLAN_REQUIRED',
-            });
-        },
-    );
+    it('sem plano informado e sem plano padrão: BILLING_PLAN_REQUIRED', async () => {
+        plans.findDefault.mockResolvedValue(null);
+        await expect(resolveReportPlan(plans, 'c1', undefined)).rejects.toMatchObject({
+            code: 'BILLING_PLAN_REQUIRED',
+        });
+    });
 });

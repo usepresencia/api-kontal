@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { BillingPlanEntity } from '@/domain/entities/billing-plan.entity.js';
 import { BillingPlanPrismaRepository } from '@/infrastructure/persistence/billing-plan.prisma.repository.js';
 import type { PrismaService } from '@/infrastructure/persistence/prisma.service.js';
@@ -7,6 +8,7 @@ const planRow = {
     companyId: 'c1',
     name: 'Plano',
     description: 'desc',
+    isDefault: false,
     createdAt: new Date('2026-01-01'),
 };
 
@@ -33,11 +35,64 @@ function makeRepo() {
 }
 
 describe('BillingPlanPrismaRepository', () => {
-    it('create grava o plano com a empresa', async () => {
+    it('create grava o primeiro plano da empresa como padrão', async () => {
         const { repo, billingPlan } = makeRepo();
+        billingPlan.count.mockResolvedValue(0);
+        billingPlan.create.mockResolvedValue({ ...planRow, isDefault: true });
+        const created = await repo.create(BillingPlanEntity.fromPersistence(planRow));
+        expect(billingPlan.create).toHaveBeenCalledWith({
+            data: expect.objectContaining({ id: 'p1', companyId: 'c1', isDefault: true }),
+        });
+        expect(created.isDefault).toBe(true);
+    });
+
+    it('create grava os planos seguintes sem ser o padrão', async () => {
+        const { repo, billingPlan } = makeRepo();
+        billingPlan.count.mockResolvedValue(1);
+        billingPlan.create.mockResolvedValue(planRow);
         await repo.create(BillingPlanEntity.fromPersistence(planRow));
         expect(billingPlan.create).toHaveBeenCalledWith({
-            data: expect.objectContaining({ id: 'p1', companyId: 'c1', name: 'Plano' }),
+            data: expect.objectContaining({ isDefault: false }),
+        });
+    });
+
+    it('create grava como não padrão quando outro primeiro plano ganhou a corrida', async () => {
+        const { repo, billingPlan } = makeRepo();
+        billingPlan.count.mockResolvedValue(0);
+        billingPlan.create
+            .mockRejectedValueOnce(
+                new Prisma.PrismaClientKnownRequestError('dup', {
+                    code: 'P2002',
+                    clientVersion: 'x',
+                }),
+            )
+            .mockResolvedValueOnce(planRow);
+        const created = await repo.create(BillingPlanEntity.fromPersistence(planRow));
+        expect(billingPlan.create).toHaveBeenLastCalledWith({
+            data: expect.objectContaining({ isDefault: false }),
+        });
+        expect(created.isDefault).toBe(false);
+    });
+
+    it('findDefault busca o plano padrão da empresa', async () => {
+        const { repo, billingPlan } = makeRepo();
+        billingPlan.findFirst.mockResolvedValue({ ...planRow, isDefault: true });
+        await expect(repo.findDefault('c1')).resolves.toMatchObject({ id: 'p1', isDefault: true });
+        expect(billingPlan.findFirst).toHaveBeenCalledWith({
+            where: { companyId: 'c1', isDefault: true },
+        });
+    });
+
+    it('setDefault desmarca o padrão atual e marca o novo na mesma transação', async () => {
+        const { repo, billingPlan } = makeRepo();
+        await repo.setDefault('c1', 'p2');
+        expect(billingPlan.updateMany).toHaveBeenNthCalledWith(1, {
+            where: { companyId: 'c1', isDefault: true },
+            data: { isDefault: false },
+        });
+        expect(billingPlan.updateMany).toHaveBeenNthCalledWith(2, {
+            where: { id: 'p2', companyId: 'c1' },
+            data: { isDefault: true },
         });
     });
 

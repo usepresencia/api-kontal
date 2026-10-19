@@ -3,7 +3,9 @@ import { DeleteBillingPlanService } from '@/application/billing/delete-billing-p
 import { GetBillingPlanService } from '@/application/billing/get-billing-plan.service.js';
 import { ListBillingPlansService } from '@/application/billing/list-billing-plans.service.js';
 import { ListPlanAccountsService } from '@/application/billing/list-plan-accounts.service.js';
+import { SetDefaultBillingPlanService } from '@/application/billing/set-default-billing-plan.service.js';
 import { UpdateBillingPlanService } from '@/application/billing/update-billing-plan.service.js';
+import { BillingPlanEntity } from '@/domain/entities/billing-plan.entity.js';
 import { fakeAccounts, fakePlans, planFixture, viewFixture } from '@test/support/billing-fakes.js';
 
 const plans = fakePlans();
@@ -17,13 +19,21 @@ beforeEach(() => {
 
 describe('CreateBillingPlanService', () => {
     it('cria o plano da empresa com id novo e persiste', async () => {
-        plans.create.mockResolvedValue(undefined);
+        plans.create.mockImplementation(async plan => plan);
         const plan = await new CreateBillingPlanService(plans).execute('c1', {
             name: ' Plano Novo ',
         });
         expect(plan).toMatchObject({ companyId: 'c1', name: 'Plano Novo', description: '' });
         expect(plan.id).toMatch(/^[0-9a-f-]{36}$/);
         expect(plans.create).toHaveBeenCalledWith(plan);
+    });
+
+    it('devolve o plano como o repositório gravou (o primeiro nasce padrão)', async () => {
+        const stored = BillingPlanEntity.create({ ...planFixture, isDefault: true });
+        plans.create.mockResolvedValue(stored);
+        await expect(
+            new CreateBillingPlanService(plans).execute('c1', { name: 'Plano' }),
+        ).resolves.toBe(stored);
     });
 
     it('nome inválido não chega ao repositório', async () => {
@@ -74,6 +84,30 @@ describe('DeleteBillingPlanService', () => {
         expect(plans.delete).not.toHaveBeenCalled();
     });
 
+    it('plano padrão com outros planos na empresa lança DEFAULT_PLAN_PROTECTED', async () => {
+        plans.findById.mockResolvedValue(
+            BillingPlanEntity.create({ ...planFixture, isDefault: true }),
+        );
+        plans.list.mockResolvedValue({ items: [], page: 1, pageSize: 2, total: 2 });
+        await expect(new DeleteBillingPlanService(plans).execute('c1', 'p1')).rejects.toMatchObject(
+            {
+                code: 'DEFAULT_PLAN_PROTECTED',
+            },
+        );
+        expect(plans.delete).not.toHaveBeenCalled();
+    });
+
+    it('plano padrão que é o único da empresa pode ser excluído', async () => {
+        plans.findById.mockResolvedValue(
+            BillingPlanEntity.create({ ...planFixture, isDefault: true }),
+        );
+        plans.list.mockResolvedValue({ items: [], page: 1, pageSize: 2, total: 1 });
+        plans.hasAccounts.mockResolvedValue(false);
+        plans.delete.mockResolvedValue(undefined);
+        await new DeleteBillingPlanService(plans).execute('c1', 'p1');
+        expect(plans.delete).toHaveBeenCalledWith('c1', 'p1');
+    });
+
     it('plano inexistente lança BILLING_PLAN_NOT_FOUND', async () => {
         plans.findById.mockResolvedValue(null);
         await expect(new DeleteBillingPlanService(plans).execute('c1', 'p9')).rejects.toMatchObject(
@@ -81,6 +115,35 @@ describe('DeleteBillingPlanService', () => {
                 code: 'BILLING_PLAN_NOT_FOUND',
             },
         );
+    });
+});
+
+describe('SetDefaultBillingPlanService', () => {
+    it('troca o padrão e devolve o plano já marcado', async () => {
+        const marked = BillingPlanEntity.create({ ...planFixture, isDefault: true });
+        plans.findById.mockResolvedValueOnce(planFixture).mockResolvedValueOnce(marked);
+        plans.setDefault.mockResolvedValue(undefined);
+        await expect(new SetDefaultBillingPlanService(plans).execute('c1', 'p1')).resolves.toBe(
+            marked,
+        );
+        expect(plans.setDefault).toHaveBeenCalledWith('c1', 'p1');
+    });
+
+    it('plano que já é o padrão não grava nada', async () => {
+        const marked = BillingPlanEntity.create({ ...planFixture, isDefault: true });
+        plans.findById.mockResolvedValue(marked);
+        await new SetDefaultBillingPlanService(plans).execute('c1', 'p1');
+        expect(plans.setDefault).not.toHaveBeenCalled();
+    });
+
+    it('plano de outra empresa lança BILLING_PLAN_NOT_FOUND', async () => {
+        plans.findById.mockResolvedValue(null);
+        await expect(
+            new SetDefaultBillingPlanService(plans).execute('c1', 'p9'),
+        ).rejects.toMatchObject({
+            code: 'BILLING_PLAN_NOT_FOUND',
+        });
+        expect(plans.setDefault).not.toHaveBeenCalled();
     });
 });
 

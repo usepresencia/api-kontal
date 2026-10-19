@@ -52,17 +52,20 @@ export function createCompanyFixture(db: PrismaService, overrides: CompanyFixtur
     });
 }
 
-export function createPlanFixture(
+/** Cria o plano; o primeiro da empresa nasce como o padrão, como na API. */
+export async function createPlanFixture(
     db: PrismaService,
     companyId: string,
     overrides: { id?: string; name?: string } = {},
 ) {
+    const isDefault = (await db.billingPlan.count({ where: { companyId } })) === 0;
     return db.billingPlan.create({
         data: {
             id: overrides.id ?? randomUUID(),
             companyId,
             name: overrides.name ?? 'Plano Teste',
             description: '',
+            isDefault,
         },
     });
 }

@@ -153,14 +153,11 @@ describe('validação e plano do DRE', () => {
         expect(invalid.body.code).toBe('VALIDATION_ERROR');
     });
 
-    it('com dois planos exige billingPlanId; com ele, responde 200', async () => {
-        await createPlanFixture(db(), seed.company.id);
-        const missing = await dre(`start=${isoDay(-1)}&end=${isoDay(0)}`);
-        expect(missing.status).toBe(400);
-        expect(missing.body.code).toBe('BILLING_PLAN_REQUIRED');
-        const chosen = await dre(
-            `start=${isoDay(-1)}&end=${isoDay(0)}&billingPlanId=${seed.plan.id}`,
-        );
+    it('com dois planos usa o padrão sem billingPlanId e aceita escolher outro', async () => {
+        const second = await createPlanFixture(db(), seed.company.id);
+        const byDefault = await dre(`start=${isoDay(-1)}&end=${isoDay(0)}`);
+        expect(byDefault.status).toBe(200);
+        const chosen = await dre(`start=${isoDay(-1)}&end=${isoDay(0)}&billingPlanId=${second.id}`);
         expect(chosen.status).toBe(200);
     });
 

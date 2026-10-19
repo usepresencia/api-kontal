@@ -6,6 +6,7 @@ export function toPlanResponse(plan: BillingPlanEntity) {
         id: plan.id,
         name: plan.name,
         description: plan.description,
+        isDefault: plan.isDefault,
         createdAt: plan.createdAt.toISOString(),
     };
 }

@@ -13,7 +13,6 @@ export class CreateBillingPlanService {
         input: { name: string; description?: string },
     ): Promise<BillingPlanEntity> {
         const plan = BillingPlanEntity.create({ id: randomUUID(), companyId, ...input });
-        await this.plans.create(plan);
-        return plan;
+        return this.plans.create(plan);
     }
 }

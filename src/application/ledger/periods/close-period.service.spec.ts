@@ -16,7 +16,7 @@ function setup(clock: { today(): Date } = fakeClock) {
     tx.periods.lockCompany.mockResolvedValue({ closedThrough: null });
     tx.journal.earliestDate.mockResolvedValue(day('2026-03-10'));
     plans.findById.mockResolvedValue(planFixture);
-    plans.list.mockResolvedValue({ items: [planFixture], page: 1, pageSize: 2, total: 1 });
+    plans.findDefault.mockResolvedValue(planFixture);
     reportAccounts.list.mockResolvedValue([
         reportAccount('rev', '3.1', AccountNature.REVENUE),
         reportAccount('exp', '4.1', AccountNature.EXPENSE),
@@ -138,7 +138,7 @@ describe('ClosePeriodService: dezembro e apuração', () => {
         expect(row.closingEntryId).toBeNull();
     });
 
-    it('sem a conta, com conta inválida ou plano ambíguo, nada é gravado', async () => {
+    it('sem a conta, com conta inválida ou sem plano padrão, nada é gravado', async () => {
         const { tx, plans, service } = december();
         await failing(
             service.execute('c1', { month: '2026-12' }),
@@ -150,7 +150,7 @@ describe('ClosePeriodService: dezembro e apuração', () => {
             'RETAINED_EARNINGS_ACCOUNT_INVALID',
         );
         tx.accounts.findRefs.mockResolvedValue([retRef]);
-        plans.list.mockResolvedValue({ items: [], page: 1, pageSize: 2, total: 2 });
+        plans.findDefault.mockResolvedValue(null);
         await failing(
             service.execute('c1', { month: '2026-12', retainedEarningsAccountId: 'ret' }),
             'BILLING_PLAN_REQUIRED',

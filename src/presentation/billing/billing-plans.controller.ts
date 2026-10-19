@@ -16,6 +16,7 @@ import { DeleteBillingPlanService } from '@/application/billing/delete-billing-p
 import { GetBillingPlanService } from '@/application/billing/get-billing-plan.service.js';
 import { ListBillingPlansService } from '@/application/billing/list-billing-plans.service.js';
 import { ListPlanAccountsService } from '@/application/billing/list-plan-accounts.service.js';
+import { SetDefaultBillingPlanService } from '@/application/billing/set-default-billing-plan.service.js';
 import { UpdateBillingPlanService } from '@/application/billing/update-billing-plan.service.js';
 import { WRITE_ROLES } from '@/domain/auth/permissions.js';
 import { Roles } from '@/infrastructure/auth/roles.decorator.js';
@@ -41,6 +42,7 @@ export class BillingPlansController {
         private readonly getPlan: GetBillingPlanService,
         private readonly listPlans: ListBillingPlansService,
         private readonly listPlanAccounts: ListPlanAccountsService,
+        private readonly setDefaultPlan: SetDefaultBillingPlanService,
     ) {}
 
     @Get()
@@ -81,6 +83,14 @@ export class BillingPlansController {
         @Body(new ZodValidationPipe(billingPlanBodySchema)) body: BillingPlanBody,
     ) {
         return toPlanResponse(await this.updatePlan.execute(companyId, id, body));
+    }
+
+    @Post(':id/default')
+    @HttpCode(200)
+    @UseGuards(RolesGuard)
+    @Roles(...WRITE_ROLES)
+    async makeDefault(@TenantId() companyId: string, @Param('id', new ParseUUIDPipe()) id: string) {
+        return toPlanResponse(await this.setDefaultPlan.execute(companyId, id));
     }
 
     @Delete(':id')
