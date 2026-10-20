@@ -17,7 +17,7 @@ export function formatProvisionReport(report: ProvisionCompanyReport): string {
             : 'SIMULAÇÃO (nada foi gravado). Para aplicar, rode de novo com --apply.',
         '',
         `Empresa: ${STATUS[report.company.status]}${report.company.id ? ` (${report.company.id})` : ''}`,
-        `Plano de contas: ${STATUS[report.plan.status]} — ${report.plan.accounts} contas e ${report.plan.presets} presets`,
+        `Plano de contas: ${STATUS[report.plan.status]} (${report.plan.accounts} contas e ${report.plan.presets} presets)`,
         ...(report.plan.applied ? [`  plano ${report.plan.applied.planId}`] : []),
         'Usuários:',
         ...report.owners.map(owner => `  ${owner.email}: ${STATUS[owner.status]}`),
