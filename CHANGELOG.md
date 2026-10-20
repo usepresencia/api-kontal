@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.5](https://github.com/usepresencia/api-kontal/compare/v0.0.4...v0.0.5) (2026-10-20)
+
+### Features
+
+- **auth:** alinha os vínculos à claim kontalMemberships do Firebase ([0ea249b](https://github.com/usepresencia/api-kontal/commit/0ea249baee432632d0a3ab64f5979eb846c0bdab))
+- **auth:** libera o Kontal a usuários com empresa e restringe a lista de empresas à plataforma ([2f9f5d7](https://github.com/usepresencia/api-kontal/commit/2f9f5d72476e4c659c6fd740276a2a26f303df96))
+- **provisioning:** adiciona a regra de conceder e revogar acesso por claim ([a7a85b3](https://github.com/usepresencia/api-kontal/commit/a7a85b3dcd47156bf84aa799485ea32a082e213e))
+- **provisioning:** expõe POST /provisioning/access e a revogação ([9caf502](https://github.com/usepresencia/api-kontal/commit/9caf50207937ec3496759cacc84fc430b2c9f058))
+- **provisioning:** persiste os eventos e integra o Firebase Admin e a chave de serviço ([2fdb60b](https://github.com/usepresencia/api-kontal/commit/2fdb60bfd9c22ad117db97a3fb5340f9019a3bbc))
+- **scripts:** adiciona o plano de contas padrão de empresa de tecnologia ([dfd5097](https://github.com/usepresencia/api-kontal/commit/dfd509740b71ea0334e5726b43b0b24241671ff5))
+- **scripts:** aplica o modelo de plano pelos serviços de domínio ([11c3da5](https://github.com/usepresencia/api-kontal/commit/11c3da5204cd9c46a112064a05aff095f5e1cec0))
+- **scripts:** provisiona a Presencia Ltda com plano de contas e acesso dos sócios ([95aee91](https://github.com/usepresencia/api-kontal/commit/95aee91a7c561ba3a6c9689fee97dfc7033a5e6a))
+
 ### [0.0.4](https://github.com/usepresencia/api-kontal/compare/v0.0.3...v0.0.4) (2026-10-19)
 
 ### [0.0.3](https://github.com/usepresencia/api-kontal/compare/v0.0.2...v0.0.3) (2026-10-19)
