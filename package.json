@@ -28,7 +28,8 @@
         "test:e2e": "firebase emulators:exec --only auth,firestore --project demo-kontal \"vitest run --config ./vitest.config.e2e.ts\"",
         "release": "standard-version",
         "commit": "cz",
-        "prepare": "husky"
+        "prepare": "husky",
+        "provision:presencia": "node dist/scripts/provision-presencia-ltda.js"
     },
     "dependencies": {
         "@nestjs/common": "^12.0.1",

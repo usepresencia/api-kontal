@@ -18,3 +18,5 @@ export const DAILY_JOURNAL_REPOSITORY = Symbol('IDailyJournalRepository');
 export const ACCOUNT_LEDGER_REPOSITORY = Symbol('IAccountLedgerRepository');
 export const CASH_FLOW_REPOSITORY = Symbol('ICashFlowRepository');
 export const PERIOD_CLOSING_READ_REPOSITORY = Symbol('IPeriodClosingReadRepository');
+export const PROVISIONING_REPOSITORY = Symbol('IProvisioningRepository');
+export const FIREBASE_ACCOUNTS = Symbol('IFirebaseAccounts');

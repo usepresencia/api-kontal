@@ -101,6 +101,12 @@ export async function emulatorTokenWithClaims(
     return signIn('accounts:signInWithPassword', { email: identity.email, password: PASSWORD });
 }
 
+/** ID token novo da conta existente, que traz as claims gravadas nela até o momento. */
+export async function emulatorTokenForUid(uid: string): Promise<string> {
+    const token = await firebaseAuth().createCustomToken(uid);
+    return signIn('accounts:signInWithCustomToken', { token });
+}
+
 async function signIn(endpoint: string, body: object): Promise<string> {
     const res = await fetch(
         `${AUTH_URL}/identitytoolkit.googleapis.com/v1/${endpoint}?key=fake-api-key`,

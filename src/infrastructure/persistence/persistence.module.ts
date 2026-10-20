@@ -12,6 +12,7 @@ import { CompanyProfilePrismaRepository } from '@/infrastructure/persistence/com
 import { CompanyPrismaRepository } from '@/infrastructure/persistence/company.prisma.repository.js';
 import { EntryReadPrismaRepository } from '@/infrastructure/persistence/entry-read.prisma.repository.js';
 import { LedgerPrismaUnitOfWork } from '@/infrastructure/persistence/ledger/ledger.prisma.unit-of-work.js';
+import { ProvisioningPrismaRepository } from '@/infrastructure/persistence/provisioning.prisma.repository.js';
 import { MembershipPrismaRepository } from '@/infrastructure/persistence/membership.prisma.repository.js';
 import {
     BILLING_ACCOUNT_REPOSITORY,
@@ -22,6 +23,7 @@ import {
     LEDGER_UNIT_OF_WORK,
     MEMBERSHIP_REPOSITORY,
     PLATFORM_ACCESS_REPOSITORY,
+    PROVISIONING_REPOSITORY,
     PARTY_REPOSITORY,
     PRESET_REPOSITORY,
     SERIES_READ_REPOSITORY,
@@ -57,6 +59,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         { provide: ENTRY_READ_REPOSITORY, useClass: EntryReadPrismaRepository },
         { provide: SERIES_READ_REPOSITORY, useClass: SeriesReadPrismaRepository },
         { provide: MEMBERSHIP_REPOSITORY, useClass: MembershipPrismaRepository },
+        { provide: PROVISIONING_REPOSITORY, useClass: ProvisioningPrismaRepository },
         { provide: PLATFORM_ACCESS_REPOSITORY, useClass: PlatformAccessPrismaRepository },
         { provide: REPORT_ACCOUNT_REPOSITORY, useClass: ReportAccountPrismaRepository },
         { provide: LEDGER_TOTALS_REPOSITORY, useClass: LedgerTotalsPrismaRepository },
@@ -80,6 +83,7 @@ import { UserPrismaRepository } from '@/infrastructure/persistence/user.prisma.r
         SERIES_READ_REPOSITORY,
         MEMBERSHIP_REPOSITORY,
         PLATFORM_ACCESS_REPOSITORY,
+        PROVISIONING_REPOSITORY,
         REPORT_ACCOUNT_REPOSITORY,
         LEDGER_TOTALS_REPOSITORY,
         JOURNAL_READ_REPOSITORY,
