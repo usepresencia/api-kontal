@@ -21,6 +21,15 @@ export const envSchema = z
         /** Origens permitidas para CORS, separadas por vírgula. */
         CORS_ALLOWED_ORIGINS: z.string().optional(),
 
+        /** Chave de serviço do provisionamento por outros sistemas; sem ela a rota fica desativada. */
+        PROVISIONING_API_KEY: z.preprocess(
+            value => (value === '' ? undefined : value),
+            z
+                .string()
+                .min(32, 'PROVISIONING_API_KEY precisa ter ao menos 32 caracteres')
+                .optional(),
+        ),
+
         CLOUDINARY_CLOUD_NAME: optionalText,
         CLOUDINARY_API_KEY: optionalText,
         CLOUDINARY_API_SECRET: optionalText,

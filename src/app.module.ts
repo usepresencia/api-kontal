@@ -14,6 +14,7 @@ import { BillingModule } from '@/presentation/billing/billing.module.js';
 import { CompaniesModule } from '@/presentation/companies/companies.module.js';
 import { LedgerModule } from '@/presentation/ledger/ledger.module.js';
 import { HealthModule } from '@/presentation/health/health.module.js';
+import { ProvisioningModule } from '@/presentation/provisioning/provisioning.module.js';
 import { ReportsModule } from '@/presentation/reports/reports.module.js';
 
 @Module({
@@ -29,6 +30,7 @@ import { ReportsModule } from '@/presentation/reports/reports.module.js';
         BillingModule,
         LedgerModule,
         ReportsModule,
+        ProvisioningModule,
         HealthModule,
     ],
     providers: [

@@ -21,3 +21,4 @@ process.env.CLOUDINARY_CLOUD_NAME = 'demo-cloud';
 process.env.CLOUDINARY_API_KEY = '123456789012345';
 process.env.CLOUDINARY_API_SECRET = 'test-secret';
 process.env.PG_POOL_MAX = '30';
+process.env.PROVISIONING_API_KEY = 'e2e-provisioning-key-0123456789abcdef';
