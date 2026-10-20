@@ -14,6 +14,7 @@ import { CreateCompanyService } from '@/application/companies/create-company.ser
 import { DeactivateCompanyService } from '@/application/companies/deactivate-company.service.js';
 import { ListCompaniesService } from '@/application/companies/list-companies.service.js';
 import { PlatformAdminGuard } from '@/infrastructure/auth/platform-admin.guard.js';
+import { PlatformUserGuard } from '@/infrastructure/auth/platform-user.guard.js';
 import { type PageQuery, pageQuerySchema } from '@/presentation/common/page-query.schema.js';
 import { toPageResponse } from '@/presentation/common/page-response.mapper.js';
 import { toCompanyResponse } from '@/presentation/companies/company.mapper.js';
@@ -22,6 +23,7 @@ import { ZodValidationPipe } from '@/presentation/pipes/zod-validation.pipe.js';
 
 /** Rotas de plataforma: não usam `X-Tenant-Id`. */
 @Controller('companies')
+@UseGuards(PlatformUserGuard)
 export class PlatformCompaniesController {
     constructor(
         private readonly createCompany: CreateCompanyService,
