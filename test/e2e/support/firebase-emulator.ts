@@ -26,6 +26,7 @@ export const identities = {
         claims: { platformRole: 'INTERNAL_SUPPORT' },
     },
     customer: { uid: 'uid-customer', email: 'cliente@presencia.test' },
+    member: { uid: 'uid-member', email: 'membro@presencia.test', name: 'Membro' },
     noemail: { uid: 'uid-noemail' },
 } satisfies Record<string, Identity>;
 
@@ -72,6 +73,32 @@ export async function emulatorToken(key: IdentityKey): Promise<string> {
           });
     tokens.set(key, idToken);
     return idToken;
+}
+
+/**
+ * Define as claims do usuário (criando-o se preciso) e devolve um ID token novo, sem cache,
+ * porque o token carrega as claims do momento em que foi emitido.
+ */
+export async function emulatorTokenWithClaims(
+    key: IdentityKey,
+    claims: Record<string, unknown>,
+): Promise<string> {
+    const identity: Identity = identities[key];
+    const auth = firebaseAuth();
+    try {
+        await auth.getUser(identity.uid);
+    } catch {
+        await auth.createUser(
+            withoutUndefined({
+                uid: identity.uid,
+                email: identity.email,
+                displayName: identity.name,
+                password: PASSWORD,
+            }),
+        );
+    }
+    await auth.setCustomUserClaims(identity.uid, claims);
+    return signIn('accounts:signInWithPassword', { email: identity.email, password: PASSWORD });
 }
 
 async function signIn(endpoint: string, body: object): Promise<string> {

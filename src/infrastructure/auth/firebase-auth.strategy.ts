@@ -3,6 +3,7 @@ import { PassportStrategy } from '@nestjs/passport';
 import { Strategy } from 'passport-custom';
 import type { SessionUser } from '@/domain/auth/session-user.js';
 import { extractBearerToken } from '@/infrastructure/auth/bearer-token.js';
+import { MembershipReconciler } from '@/infrastructure/auth/membership.reconciler.js';
 import { FirebaseTokenVerifier } from '@/infrastructure/auth/firebase-token.verifier.js';
 import { PlatformRoleResolver } from '@/infrastructure/auth/platform-role.resolver.js';
 import { SessionUserAssembler } from '@/infrastructure/auth/session-user.assembler.js';
@@ -15,6 +16,7 @@ export class FirebaseAuthStrategy extends PassportStrategy(Strategy, 'firebase')
         private readonly provisioner: UserProvisioner,
         private readonly platformRoles: PlatformRoleResolver,
         private readonly assembler: SessionUserAssembler,
+        private readonly reconciler: MembershipReconciler,
     ) {
         super();
     }
@@ -25,6 +27,7 @@ export class FirebaseAuthStrategy extends PassportStrategy(Strategy, 'firebase')
         const decoded = await this.verifier.verify(token);
         const user = await this.provisioner.provision(decoded);
         const platformRole = await this.platformRoles.resolve(user.id, decoded['platformRole']);
+        await this.reconciler.reconcile(user.id, decoded['kontalMemberships']);
         return this.assembler.assemble(user, platformRole);
     }
 }
