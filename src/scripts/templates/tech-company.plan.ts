@@ -13,7 +13,7 @@ const SUPPORT = {
 
 /** Plano de contas padrão para empresa de tecnologia (software, assinaturas e serviços). */
 export const TECH_COMPANY_PLAN: PlanTemplate = {
-    name: 'Plano de Contas — Empresa de Tecnologia',
+    name: 'Plano de Contas de Empresa de Tecnologia',
     description:
         'Estrutura contábil e gerencial para empresa de software e serviços de tecnologia: receita recorrente (SaaS), projetos, custo de nuvem, pessoal e P&D.',
     roots: [
@@ -30,8 +30,8 @@ export const TECH_COMPANY_PLAN: PlanTemplate = {
                             leaf('Aplicações Financeiras de Liquidez Imediata'),
                         ]),
                         group('Contas a Receber', [
-                            leaf('Clientes — Assinaturas a Receber', 'clientes-assinaturas'),
-                            leaf('Clientes — Serviços e Projetos a Receber', 'clientes-servicos'),
+                            leaf('Clientes de Assinaturas a Receber', 'clientes-assinaturas'),
+                            leaf('Clientes de Serviços e Projetos a Receber', 'clientes-servicos'),
                             leaf('Outros Valores a Receber'),
                         ]),
                         group('Tributos a Recuperar', [
@@ -75,7 +75,7 @@ export const TECH_COMPANY_PLAN: PlanTemplate = {
                         group('Fornecedores', [
                             leaf('Fornecedores de Infraestrutura em Nuvem', 'forn-infra'),
                             leaf('Fornecedores de Software e Licenças', 'forn-software'),
-                            leaf('Fornecedores — Serviços Profissionais', 'forn-servicos'),
+                            leaf('Fornecedores de Serviços Profissionais', 'forn-servicos'),
                             leaf('Fornecedores Diversos', 'forn-diversos'),
                         ]),
                         group('Obrigações Trabalhistas', [
@@ -211,8 +211,8 @@ export const TECH_COMPANY_PLAN: PlanTemplate = {
                         group(
                             'Pessoal de Entrega e Suporte',
                             [
-                                leaf('Salários e Encargos — Suporte e Sucesso do Cliente'),
-                                leaf('Salários e Encargos — Operações e Implantação'),
+                                leaf('Salários e Encargos de Suporte e Sucesso do Cliente'),
+                                leaf('Salários e Encargos de Operações e Implantação'),
                                 leaf('Prestadores de Serviço de Entrega'),
                             ],
                             { cost: 'FIXED' },
@@ -226,7 +226,7 @@ export const TECH_COMPANY_PLAN: PlanTemplate = {
                         group(
                             'Pesquisa e Desenvolvimento',
                             [
-                                leaf('Salários e Encargos — Engenharia', 'folha'),
+                                leaf('Salários e Encargos de Engenharia', 'folha'),
                                 leaf('Prestadores de Desenvolvimento', 'dev-pj'),
                                 leaf('Ferramentas de Desenvolvimento e Licenças', 'ferramentas'),
                             ],
@@ -236,13 +236,17 @@ export const TECH_COMPANY_PLAN: PlanTemplate = {
                             leaf('Mídia Paga e Anúncios', 'midia', 'VARIABLE'),
                             leaf('Comissões de Vendas', undefined, 'VARIABLE'),
                             leaf('Eventos e Patrocínios', undefined, 'VARIABLE'),
-                            leaf('Salários e Encargos — Comercial e Marketing', undefined, 'FIXED'),
+                            leaf(
+                                'Salários e Encargos de Comercial e Marketing',
+                                undefined,
+                                'FIXED',
+                            ),
                         ]),
                         group(
                             'Administrativas',
                             [
                                 leaf('Pró-labore', 'prolabore'),
-                                leaf('Salários e Encargos — Administrativo'),
+                                leaf('Salários e Encargos Administrativos'),
                                 leaf('Aluguel e Coworking', 'aluguel'),
                                 leaf('Energia, Internet e Telefonia', 'utilidades'),
                                 leaf('Contabilidade e Assessoria Jurídica', 'contabilidade'),

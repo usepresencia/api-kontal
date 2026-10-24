@@ -47,6 +47,26 @@ function daysInMonth(year: number, month: number): number {
     return new Date(Date.UTC(year, month + 1, 0)).getUTCDate();
 }
 
+const MONTH_ABBREVIATIONS = [
+    'jan',
+    'fev',
+    'mar',
+    'abr',
+    'mai',
+    'jun',
+    'jul',
+    'ago',
+    'set',
+    'out',
+    'nov',
+    'dez',
+];
+
+/** Referência de mês/ano da ocorrência, ex: "Ref.: out/2026", a partir do vencimento em UTC. */
+function monthYearRef(date: Date): string {
+    return `Ref.: ${MONTH_ABBREVIATIONS[date.getUTCMonth()]}/${date.getUTCFullYear()}`;
+}
+
 /** Soma períodos a partir da data base; mensal e anual limitam ao último dia do mês. */
 export function addPeriods(base: Date, frequency: SeriesFrequency, steps: number): Date {
     if (frequency === SeriesFrequency.WEEKLY) {
@@ -76,13 +96,16 @@ export function buildInstallments(params: {
     if (!Number.isInteger(count) || count < 2) invalid('Parcelado exige ao menos 2 parcelas');
     if (count > MAX_PER_GENERATION) limitExceeded(`O máximo é ${MAX_PER_GENERATION} parcelas`);
     if (total < count) invalid('Cada parcela deve ter ao menos 1 centavo');
-    return splitCents(total, count).map((amount, position) => ({
-        index: position + 1,
-        description: `${params.description} (${position + 1}/${count})`,
-        amount,
-        issueDate: params.issueDate,
-        expirationDate: addPeriods(params.firstDue, params.frequency, position),
-    }));
+    return splitCents(total, count).map((amount, position) => {
+        const expirationDate = addPeriods(params.firstDue, params.frequency, position);
+        return {
+            index: position + 1,
+            description: `${params.description} ${monthYearRef(expirationDate)}`,
+            amount,
+            issueDate: params.issueDate,
+            expirationDate,
+        };
+    });
 }
 
 /**
@@ -126,12 +149,13 @@ export function buildRecurrences(params: {
     }
     return Array.from({ length: quantity }, (_, position) => {
         const index = startIndex + position;
+        const expirationDate = addPeriods(params.firstDue, params.frequency, index - 1);
         return {
             index,
-            description: `${params.description} (${index})`,
+            description: `${params.description} ${monthYearRef(expirationDate)}`,
             amount: params.amount,
             issueDate: addPeriods(params.firstIssueDate, params.frequency, index - 1),
-            expirationDate: addPeriods(params.firstDue, params.frequency, index - 1),
+            expirationDate,
         };
     });
 }
