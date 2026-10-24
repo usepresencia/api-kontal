@@ -42,9 +42,9 @@ describe('CreateTitleSeriesService: parcelado', () => {
                 t.expirationDate.toISOString().slice(0, 10),
             ]),
         ).toEqual([
-            [1, 'Venda (1/3)', 30000, '2026-10-14', '2026-11-10'],
-            [2, 'Venda (2/3)', 30000, '2026-10-14', '2026-12-10'],
-            [3, 'Venda (3/3)', 30000, '2026-10-14', '2027-01-10'],
+            [1, 'Venda (nov/2026)', 30000, '2026-10-14', '2026-11-10'],
+            [2, 'Venda (dez/2026)', 30000, '2026-10-14', '2026-12-10'],
+            [3, 'Venda (jan/2027)', 30000, '2026-10-14', '2027-01-10'],
         ]);
         expect(
             titles.every(
@@ -123,9 +123,9 @@ describe('CreateTitleSeriesService: recorrente', () => {
                 t.expirationDate.toISOString().slice(0, 10),
             ]),
         ).toEqual([
-            ['Venda (1)', 250000, '2026-11-05', '2026-11-10'],
-            ['Venda (2)', 250000, '2026-12-05', '2026-12-10'],
-            ['Venda (3)', 250000, '2027-01-05', '2027-01-10'],
+            ['Venda (nov/2026)', 250000, '2026-11-05', '2026-11-10'],
+            ['Venda (dez/2026)', 250000, '2026-12-05', '2026-12-10'],
+            ['Venda (jan/2027)', 250000, '2027-01-05', '2027-01-10'],
         ]);
         expect(titles[0]).toMatchObject({
             controlAccountId: 'ap',
