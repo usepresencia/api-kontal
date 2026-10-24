@@ -79,9 +79,9 @@ describe('buildInstallments', () => {
                 iso(i.expirationDate),
             ]),
         ).toEqual([
-            [1, 'Venda (nov/2026)', 30000, '2026-10-14', '2026-11-10'],
-            [2, 'Venda (dez/2026)', 30000, '2026-10-14', '2026-12-10'],
-            [3, 'Venda (jan/2027)', 30000, '2026-10-14', '2027-01-10'],
+            [1, 'Venda Ref.: nov/2026', 30000, '2026-10-14', '2026-11-10'],
+            [2, 'Venda Ref.: dez/2026', 30000, '2026-10-14', '2026-12-10'],
+            [3, 'Venda Ref.: jan/2027', 30000, '2026-10-14', '2027-01-10'],
         ]);
     });
 
@@ -129,9 +129,9 @@ describe('buildRecurrences', () => {
                 iso(i.expirationDate),
             ]),
         ).toEqual([
-            [1, 'Aluguel (nov/2026)', 250000, '2026-11-05', '2026-11-10'],
-            [2, 'Aluguel (dez/2026)', 250000, '2026-12-05', '2026-12-10'],
-            [3, 'Aluguel (jan/2027)', 250000, '2027-01-05', '2027-01-10'],
+            [1, 'Aluguel Ref.: nov/2026', 250000, '2026-11-05', '2026-11-10'],
+            [2, 'Aluguel Ref.: dez/2026', 250000, '2026-12-05', '2026-12-10'],
+            [3, 'Aluguel Ref.: jan/2027', 250000, '2027-01-05', '2027-01-10'],
         ]);
     });
 
@@ -148,8 +148,8 @@ describe('buildRecurrences', () => {
     it('ao estender, continua a numeração e ancora nas datas da primeira ocorrência', () => {
         const items = buildRecurrences({ ...base, count: 2, startIndex: 4 });
         expect(items.map(i => [i.index, i.description, iso(i.expirationDate)])).toEqual([
-            [4, 'Aluguel (fev/2027)', '2027-02-10'],
-            [5, 'Aluguel (mar/2027)', '2027-03-10'],
+            [4, 'Aluguel Ref.: fev/2027', '2027-02-10'],
+            [5, 'Aluguel Ref.: mar/2027', '2027-03-10'],
         ]);
     });
 

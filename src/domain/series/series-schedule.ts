@@ -62,9 +62,9 @@ const MONTH_ABBREVIATIONS = [
     'dez',
 ];
 
-/** Referência de mês/ano da ocorrência entre parênteses, ex: "(out/2026)", a partir do vencimento em UTC. */
+/** Referência de mês/ano da ocorrência, ex: "Ref.: out/2026", a partir do vencimento em UTC. */
 function monthYearRef(date: Date): string {
-    return `(${MONTH_ABBREVIATIONS[date.getUTCMonth()]}/${date.getUTCFullYear()})`;
+    return `Ref.: ${MONTH_ABBREVIATIONS[date.getUTCMonth()]}/${date.getUTCFullYear()}`;
 }
 
 /** Soma períodos a partir da data base; mensal e anual limitam ao último dia do mês. */
