@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+### [0.0.6](https://github.com/usepresencia/api-kontal/compare/v0.0.5...v0.0.6) (2026-10-24)
+
+### Bug Fixes
+
+- **scripts:** troca os travessões dos nomes do plano de tecnologia ([e050856](https://github.com/usepresencia/api-kontal/commit/e0508569cea93394150664d7dca82111e3f2c810))
+- **series:** troca a numeração (n) pela referência de mês/ano no título ([75d5079](https://github.com/usepresencia/api-kontal/commit/75d5079b958fbebe3b6de82825afc91fe8247a52))
+- **series:** troca o formato da referência para "Ref.: mês/ano" ([1e741e7](https://github.com/usepresencia/api-kontal/commit/1e741e7b2a3ac7266e9e48c92cac449a2f61e987))
+
 ### [0.0.5](https://github.com/usepresencia/api-kontal/compare/v0.0.4...v0.0.5) (2026-10-20)
 
 ### Features
