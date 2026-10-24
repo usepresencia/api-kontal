@@ -50,8 +50,8 @@ describe('ExtendTitleSeriesService', () => {
                 t.expirationDate.toISOString().slice(0, 10),
             ]),
         ).toEqual([
-            [4, 'Aluguel (4)', '2027-02-10'],
-            [5, 'Aluguel (5)', '2027-03-10'],
+            [4, 'Aluguel Ref.: fev/2027', '2027-02-10'],
+            [5, 'Aluguel Ref.: mar/2027', '2027-03-10'],
         ]);
         expect(result.titles[0]).toMatchObject({
             presetId: 'pr1',

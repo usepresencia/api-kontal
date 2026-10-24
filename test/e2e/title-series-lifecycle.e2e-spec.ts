@@ -59,8 +59,8 @@ describe('POST /title-series/:id/extend', () => {
                 t.expirationDate,
             ]),
         ).toEqual([
-            [4, 'Aluguel (4)', '2027-02-10'],
-            [5, 'Aluguel (5)', '2027-03-10'],
+            [4, 'Aluguel Ref.: fev/2027', '2027-02-10'],
+            [5, 'Aluguel Ref.: mar/2027', '2027-03-10'],
         ]);
         expect(added[0]).toMatchObject({
             amount: '2500.00',
