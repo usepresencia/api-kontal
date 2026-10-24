@@ -70,9 +70,9 @@ describe('POST /title-series: parcelado', () => {
                 t.expirationDate,
             ]),
         ).toEqual([
-            [1, 'Venda (1/3)', '33.34', '2026-01-20', '2026-01-31'],
-            [2, 'Venda (2/3)', '33.33', '2026-01-20', '2026-02-28'],
-            [3, 'Venda (3/3)', '33.33', '2026-01-20', '2026-03-31'],
+            [1, 'Venda Ref.: jan/2026', '33.34', '2026-01-20', '2026-01-31'],
+            [2, 'Venda Ref.: fev/2026', '33.33', '2026-01-20', '2026-02-28'],
+            [3, 'Venda Ref.: mar/2026', '33.33', '2026-01-20', '2026-03-31'],
         ]);
         for (const title of titles) {
             const journal = await journalOf(db(), 'TITLE_CREATION', title.id);
@@ -163,9 +163,9 @@ describe('POST /title-series: recorrente', () => {
             expirationDate: string;
         }[];
         expect(titles.map(t => [t.description, t.amount, t.issueDate, t.expirationDate])).toEqual([
-            ['Aluguel (1)', '2500.00', '2026-11-05', '2026-11-10'],
-            ['Aluguel (2)', '2500.00', '2026-12-05', '2026-12-10'],
-            ['Aluguel (3)', '2500.00', '2027-01-05', '2027-01-10'],
+            ['Aluguel Ref.: nov/2026', '2500.00', '2026-11-05', '2026-11-10'],
+            ['Aluguel Ref.: dez/2026', '2500.00', '2026-12-05', '2026-12-10'],
+            ['Aluguel Ref.: jan/2027', '2500.00', '2027-01-05', '2027-01-10'],
         ]);
         const journal = await journalOf(db(), 'TITLE_CREATION', titles[1].id);
         expect(journal.date).toBe('2026-12-05');
